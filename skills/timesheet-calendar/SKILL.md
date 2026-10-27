@@ -47,6 +47,12 @@ Ask `Done` · `I'm stuck`. Then call `list_calendars` again and find it by name.
 
 Ask `Done` · `Skip for now (I'll do it later)`. Skipping is fine; the first import offers a test event to check it.
 
+**4b. Create the import skill in Productive AI.** Explain that the calendar blocks still have to become time entries in Productive, and that Productive AI can do that in one go. Show the prompt from `references/productive-skill.md` in a code block, so it's easy to copy. Tell the user to:
+1. Paste it into Productive AI chat, which creates the skill "Import calendar time and meetings".
+2. Replace the meetings placeholders with their recurring meetings and the project, budget, service and task those are logged on.
+
+Ask `Done` · `Later`. On `Done`, run `projects.py pref productive_skill done`.
+
 **5. The rest, in one call.** Run `config.py guess`, then ask:
 - **Meetings calendar**: the primary calendar (Recommended), read only.
 - **Holidays**: holiday calendars from `list_calendars` (e.g. `Holidays in Netherlands`), plus `None`.
@@ -218,7 +224,9 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py verify <list_events file> --since 
 
 Recreate anything reported missing, then verify again.
 
-Report: events created per day, the verification result, and that Productive's timesheet needs a refresh to show them. Then, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. "No thanks" runs `reminder.py off`, which records the choice so it isn't asked again.
+Report: events created per day and the verification result. Then tell the user the next step is in Productive, because nothing is logged there yet:
+- If `projects.py pref productive_skill` is `done`, give one line to paste into Productive AI chat: `Import calendar time and meetings for <range, e.g. Tue 27 Oct>`.
+- Otherwise, explain that Productive AI needs the import skill once. Show the prompt from `references/productive-skill.md` as in setup step 4b, then that one line. Ask `Created it` (saves the pref) · `I'll add them by hand`. Adding them by hand means clicking each grey suggestion in My time → Calendar view after refreshing. Then, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. "No thanks" runs `reminder.py off`, which records the choice so it isn't asked again.
 
 ## Shortcuts and help
 
@@ -234,6 +242,7 @@ The skill takes shortcut arguments, so settings can be changed without going thr
 | `reminder` · `reminder on` · `reminder off` · `reminder 17:00` · `reminder daily` · `reminder weekdays` | the daily reminder |
 | `projects` | add, rename or recolour projects |
 | `naming` · `naming pr` · `naming branch` | name tasks after PR titles or branch names |
+| `productive` | shows the Productive AI skill prompt again |
 | `today` · `yesterday` · `this week` · `missing` · `14–18 Oct` | log hours for that range (anything else is read as a range or a request) |
 
 **`help`** runs `reminder.py status` and `projects.py pref title_source`, then prints the table above with a "Now" column showing the current values. Under it, it lists the terminal equivalents, which work without starting Claude:
