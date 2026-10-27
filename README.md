@@ -23,7 +23,14 @@ The repo is private: your git needs access to it (SSH key or `gh auth login && g
 
 ## timesheet-calendar
 
-Run `/dcepa95:timesheet-calendar`. The first run sets you up: it asks for the private calendar Productive reads, your meetings and holiday calendars, your git author and your working day. `/dcepa95:timesheet-calendar help` lists the shortcuts.
+Run `/dcepa95:timesheet-calendar`. The first run walks you through setup:
+
+1. Connect Google Calendar to Claude (claude.ai → Settings → Connectors).
+2. Create a private calendar for your timesheet blocks, with a name of your choice.
+3. Show that calendar in Productive.
+4. Pick your meetings and holiday calendars, git author and working day.
+
+Run `/dcepa95:timesheet-calendar setup` to go through it again. `/dcepa95:timesheet-calendar help` lists the shortcuts.
 
 Needs the Google Calendar connector in Claude, Python 3 and git. Optional: the GitHub CLI (`gh`) for PR titles and review time, and macOS for the daily reminder.
 

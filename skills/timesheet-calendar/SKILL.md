@@ -1,6 +1,6 @@
 ---
 name: timesheet-calendar
-description: Reconstruct what the user worked on (from git commits, reflogs and Claude Code conversations in folders they choose), lay it out as time blocks within the working day, and import those blocks as events into their private "Tasks Tracking" Google Calendar so Productive can turn them into timesheet entries. Use this whenever the user wants to fill in timesheets, log hours, track or reconstruct what they worked on for a day/week/month, fill timesheet gaps, or add work blocks to their calendar or Productive, even if they only say "do it for today" or "what did I work on last week" in a timesheet context. Also use it to manage the skill's settings (projects and colours, task naming, the work folder, the default terminal, and the daily timesheet reminder on/off/time) and to show its shortcut commands (`help`) or redo setup (`setup`).
+description: Reconstruct what the user worked on (from git commits, reflogs and Claude Code conversations in folders they choose), lay it out as time blocks within the working day, and import those blocks as events into a private Google Calendar of their choosing so Productive can turn them into timesheet entries. Use this whenever the user wants to fill in timesheets, log hours, track or reconstruct what they worked on for a day/week/month, fill timesheet gaps, or add work blocks to their calendar or Productive, even if they only say "do it for today" or "what did I work on last week" in a timesheet context. Also use it to manage the skill's settings (projects and colours, task naming, the work folder, the default terminal, and the daily timesheet reminder on/off/time) and to show its shortcut commands (`help`) or redo setup (`setup`).
 ---
 
 # Timesheet → Calendar
@@ -13,24 +13,54 @@ Personal settings (calendars, git author, working day, lunch) and data live in `
 
 ## Setup (first run)
 
-Run `python3 ${CLAUDE_SKILL_DIR}/scripts/config.py show` at the start of every run. Do this setup before anything else if its last line says `setup: needed`, or if the argument is `setup`:
+Run `python3 ${CLAUDE_SKILL_DIR}/scripts/config.py show` at the start of every run. If its last line says `setup: needed`, or the argument is `setup`, guide the user through the steps below before anything else.
 
-1. Explain in two lines what the skill needs. Blocks go into a **private** Google Calendar that Productive reads, so colleagues looking at your calendar don't see them. The Google Calendar connector can't create calendars.
-2. Ask **"Do you have a private calendar for timesheet blocks?"**:
-   - `Yes, pick it from my calendars`
-   - `No, I'll create one now`: then explain the steps and wait for the user to say done:
-     1. In Google Calendar, go to Other calendars → + → Create new calendar and name it `Tasks Tracking`.
-     2. In Productive, turn that calendar on in the calendar integration settings.
-3. Run `list_calendars`, then `config.py guess`, and ask in one call:
-   - **Timesheet calendar**: the user's own secondary calendars. Never offer the primary calendar, because colleagues can see it.
-   - **Meetings calendar**: the primary calendar (Recommended).
-   - **Holidays**: the holiday calendars found, plus `None`.
-   - **Git author**: the `guess` value (Recommended), the name alone, or the email name alone.
-4. Ask **"Working day?"**:
-   - `09:00–18:00, lunch 12:30–13:30 (Recommended)`
-   - `08:30–17:30, lunch 12:00–13:00`
-   - `10:00–19:00, lunch 13:00–14:00`
-5. Save each answer with `config.py set <key> <value>`, show `config.py show`, then carry on with what the user asked for. With `setup` alone, stop here.
+Go one step at a time. Each step that needs the user to act elsewhere ends with a question: `Done` (Recommended) · `I'm stuck`, with what "done" looks like in the description. On `I'm stuck`, ask what they see and help, then ask again. Don't move on before `Done`. Skip any step that's already true, such as a connector that's already working. Open with two lines on what they'll end up with: a private Google Calendar that only they see, which Claude fills with work blocks and Productive shows as timesheet suggestions.
+
+**1. Connect Google Calendar to Claude.** Check whether the Google Calendar tools (`list_calendars`, `create_event`, …) are available, and call `list_calendars`.
+- If it works, say which account is connected and go to step 2.
+- If the tools exist but need authentication (an `authenticate` tool, or an auth error), run the authenticate tool, then tell the user to finish the sign-in in the browser with their **work** Google account.
+- If there are no Google Calendar tools at all, explain:
+  1. On claude.ai, go to Settings → Connectors → Google Calendar → Connect, and sign in with the work Google account.
+  2. Back in Claude Code, logged in with the same claude.ai account, run `/mcp` to check that it's listed and connected, or restart Claude.
+
+  Then ask `Done` · `I'm stuck`. Once the tools appear, call `list_calendars` to confirm.
+
+**2. Choose the calendar's name.** Ask **"What should your timesheet calendar be called?"**:
+- `Tasks Tracking (Recommended)`
+- `Timesheet`
+- `Work log`
+
+Any other name goes via Other. If `list_calendars` already shows a secondary calendar the user owns that looks like one, offer `Use "<name>", which I found` first.
+
+**3. Create the calendar.** The connector can't create calendars, so give the steps:
+1. Open calendar.google.com with the work account.
+2. In the left sidebar, next to **Other calendars**, click **+** → **Create new calendar**.
+3. Name it `<chosen name>` and click **Create calendar**.
+4. Optional: in its settings, under **Access permissions**, check that it isn't shared, so only you see it.
+
+Ask `Done` · `I'm stuck`. Then call `list_calendars` again and find it by name. If it's missing, say so and ask again; it can take a moment to show up. Never fall back to the primary calendar, because colleagues can see it.
+
+**4. Show it in Productive.** Explain that Productive must read this calendar for the blocks to become timesheet suggestions:
+1. In Productive, open the Google Calendar integration, connect the same Google account, and tick `<chosen name>` in the calendars it shows. See [Productive's guide](https://help.productive.io/en/articles/6940914-google-calendar-integration).
+2. Under **My time → Calendar view**, events from it appear as grey suggestions.
+
+Ask `Done` · `Skip for now (I'll do it later)`. Skipping is fine; the first import offers a test event to check it.
+
+**5. The rest, in one call.** Run `config.py guess`, then ask:
+- **Meetings calendar**: the primary calendar (Recommended), read only.
+- **Holidays**: holiday calendars from `list_calendars` (e.g. `Holidays in Netherlands`), plus `None`.
+- **Git author**: the `guess` value (Recommended), the name alone, or the email name alone. It's the regex matched against commit authors.
+- **Working day**: `09:00–18:00, lunch 12:30–13:30 (Recommended)` · `08:30–17:30, lunch 12:00–13:00` · `10:00–19:00, lunch 13:00–14:00`
+
+**6. Save and confirm.** Run `config.py set` for each value:
+- `target_calendar`: the new calendar's ID
+- `meetings_calendar`
+- `holiday_calendar`
+- `author`
+- `workday` and `lunch`, written as `HH:MM-HH:MM`
+
+Then show `config.py show` and say what happens next: the user picks folders, Claude reads their history and proposes blocks, and nothing is written before they approve. Carry on with what they asked for. With `setup` alone, stop here.
 
 The reminder question comes at the end of the first run (see step 5 of the main flow).
 
@@ -107,7 +137,7 @@ Days are marked `(WEEKEND)`. If GitHub was skipped, mention once that `brew inst
 
 Fetch three things from Google Calendar for the range with `list_events` (`startTime`, `endTime`, `pageSize: 250`), using the calendar IDs from `config.py show`, and save each to a scratchpad file:
 - **Meetings**: the primary calendar. Out-of-office events come back here too.
-- **Already logged**: the Tasks Tracking calendar. Re-runs fill gaps only.
+- **Already logged**: the timesheet calendar (`target_calendar`). Re-runs fill gaps only.
 - **Holidays**: the public-holiday calendar.
 
 Follow any `nextPageToken` and pass both pages.
@@ -120,7 +150,7 @@ Turn evidence into blocks within the `workday` hours, as `[date, start, end, pro
 - Evidence marks **when** something was happening, not how long it took. Be generous: assume work started well before a commit and continued until the next sign of different work. A branch checked out from 11:56 to 14:46 filled that span.
 - Leave meetings uncovered and keep `lunch` free.
 - Absorb gaps of 15 minutes or less into the neighbouring block, or leave them out. No 10-minute blocks.
-- Leave time already covered by Tasks Tracking events alone.
+- Leave time already covered by events in the timesheet calendar alone.
 - Tidy branch names (`story/#3864-cart-shipping-missing` → `#3864 Cart shipping missing`). Branches without a PR always use the branch name. Titles say what was done.
 - PR reviews get their own block (`Review PR #123 …`) in the repo's project.
 - Merges into staging/develop, release PRs and cherry-picks are their own `Releases` blocks.
@@ -151,11 +181,11 @@ Show the dry-run table per day (time, title, task, evidence), the meetings left 
 | Day over 9h | `Keep it` · `Trim to 9h (drop the last inferred block)` |
 | Blocks on a weekend, holiday or OOO day | `Keep them` · `Drop them` |
 | Inferred stretches | multiSelect `Which inferred blocks should I keep?`, one option per block (title + time), up to 4. If there are more, use one option per day. |
-| An existing Tasks Tracking block looks wrong given new evidence | `Leave it` · `Replace it with <new title>` (only if `ledger.py has` succeeds; otherwise only `Leave it` and tell the user) |
+| An existing block in the timesheet calendar looks wrong given new evidence | `Leave it` · `Replace it with <new title>` (only if `ledger.py has` succeeds; otherwise only `Leave it` and tell the user) |
 
 Apply the answers, re-run `plan.py`, and show the table again only if something changed.
 
-**Then the go-ahead.** Ask **"Import <N> blocks (<h> h) into Tasks Tracking?"**:
+**Then the go-ahead.** Ask **"Import <N> blocks (<h> h) into <timesheet calendar name>?"**:
 - `Import all (Recommended)`
 - `Test event first`: creates only the first block so the user can check Productive. Recommended instead for a first import or a range longer than a week.
 - For ranges of several days: `Choose days`, followed by a multiSelect of the days. Use one option per day for up to 4 days, otherwise one per week.
@@ -163,11 +193,11 @@ Apply the answers, re-run `plan.py`, and show the table again only if something 
 
 Nothing is written to the calendar before an import option is picked. "Other" text that isn't a clear yes counts as a change request.
 
-After a test event, ask `Shows up in Productive, import the rest` · `Doesn't show up` (troubleshoot: is Tasks Tracking enabled in Productive's calendar settings?).
+After a test event, ask `Shows up in Productive, import the rest` · `Doesn't show up` (troubleshoot: is the timesheet calendar ticked in Productive's Google Calendar integration? See setup step 4.).
 
 ## 5. Import
 
-Create each event from `events.json` with `create_event` on the Tasks Tracking calendar, passing every field as is (`summary`, `startTime`, `endTime`, `colorId`, `description`, `useDefaultReminders: false`, `notificationLevel: NONE`). Send parallel batches of at most 10.
+Create each event from `events.json` with `create_event` on the timesheet calendar (`target_calendar`), passing every field as is (`summary`, `startTime`, `endTime`, `colorId`, `description`, `useDefaultReminders: false`, `notificationLevel: NONE`). Send parallel batches of at most 10.
 
 After **each** batch, record what came back before sending the next:
 
@@ -179,7 +209,7 @@ The ledger (`~/.claude/timesheet-calendar/created.jsonl`) outlives the conversat
 
 **Failures.** Record what did come back. Work out which planned events are still missing by matching start times against the ledger, and retry only those. For quota errors (`Resource has been exhausted`, rate limits): run `sleep 60` with `run_in_background`, continue when it finishes, and halve the batch size. If the same events fail a second time, ask `Retry in a minute (Recommended)` · `Stop here, finish later`. A later run fills the gap without duplicating, so stopping is safe. Never resend a whole batch blindly.
 
-**Verify** by listing the Tasks Tracking calendar for the range (`list_events` with `calendarId`, `startTime`, `endTime`; no full-text search) and running:
+**Verify** by listing the timesheet calendar for the range (`list_events` with `calendarId`, `startTime`, `endTime`; no full-text search) and running:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py verify <list_events file> --since <start> --until <end>
@@ -196,7 +226,7 @@ The skill takes shortcut arguments, so settings can be changed without going thr
 | Shortcut | Does |
 |---|---|
 | `help` | shows this list with the current values |
-| `setup` | calendars, git author and working day again |
+| `setup` | walks through setup again: Google Calendar connection, timesheet calendar, Productive, git author, working day |
 | `settings` | the settings menu |
 | `folder` · `folder <path>` · `folder reset` | the work folder: where **Do it now** starts Claude, so its subfolders are what gets scanned. `reset` makes the next **Do it now** ask again. |
 | `terminal` · `terminal <app>` · `terminal ask` · `terminal always` | the default terminal for **Do it now**. `ask` shows the picker each time with the default preselected; `always` opens the default without asking. |
