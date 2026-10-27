@@ -151,7 +151,8 @@ Turn evidence into blocks within the `workday` hours, as `[date, start, end, pro
 - Leave meetings uncovered and keep `lunch` free.
 - Absorb gaps of 15 minutes or less into the neighbouring block, or leave them out. No 10-minute blocks.
 - Leave time already covered by events in the timesheet calendar alone.
-- Tidy branch names (`story/#3864-cart-shipping-missing` → `#3864 Cart shipping missing`). Branches without a PR always use the branch name. Titles say what was done.
+- Tidy branch names (`story/#3864-cart-shipping-missing` → `#3864 Cart shipping missing`). Branches without a PR always use the branch name.
+- Keep titles very short, like a ticket name: 2–4 words, at most about 30 characters. Examples: `Forms reCAPTCHA`, `Cart shipping missing`, `Contentful redirects`, `Review budget branch`, `Release #3230 / #3205`. Name the topic, not the work done on it: no colons with explanations, no "check if…" or "resolve … server side". Details go in the evidence field. Consecutive blocks on the same topic get the same title.
 - PR reviews get their own block (`Review PR #123 …`) in the repo's project.
 - Merges into staging/develop, release PRs and cherry-picks are their own `Releases` blocks.
 - Stretches with no evidence: infer from the task in progress before and after, and say "inferred" in the evidence. Don't invent specific work.
