@@ -301,6 +301,8 @@ After any change made from the menu, ask `Done` · `Change something else` · `L
 
 An event is yours to change only if `ledger.py has <id>` succeeds. Anything else (meetings, events the user made, even apparent duplicates) is off limits: tell the user and let them handle it.
 
+Productive copies an event into a separate time entry when the user adds it, and later calendar changes don't reach that entry. So before renaming, moving or deleting blocks, ask **"Have you already added these days to Productive?"**: `No, change the calendar (Recommended)` · `Yes, leave them`. If yes, explain that Productive keeps the old version. Any change must then be made in Productive by hand, and changed events may show up there as suggestions again, which mustn't be added a second time.
+
 Before deleting or changing your own events, list them and ask a multiSelect `Which blocks should I delete?` (title + time per option, grouped by day when there are more than 4). Then confirm with `Delete <N> blocks` · `Cancel`. After deleting, run `ledger.py remove <id>`.
 
 To move events between calendars: create the copies and record them, verify all of them, then delete the originals and mark them removed. Never delete first.
