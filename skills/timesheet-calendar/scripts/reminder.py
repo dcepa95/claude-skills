@@ -17,16 +17,24 @@ with the skill there), "Remind me later…" (15 min to 2 h) and "Skip today". Wi
 Choices live in the project registry prefs (reminder, reminder_time, reminder_days, reminder_terminal,
 reminder_terminal_ask, reminder_cwd, claude_path).
 """
-import argparse, os, plistlib, shlex, shutil, subprocess, sys, time
+import argparse, json, os, plistlib, shlex, shutil, subprocess, sys, time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from projects import load, save
 
 LABEL = 'com.claude.timesheet-reminder'
 PLIST = os.path.expanduser(f'~/Library/LaunchAgents/{LABEL}.plist')
-LEGACY = [os.path.expanduser('~/Library/LaunchAgents/com.diogo.timesheet-reminder.plist')]
 DOMAIN = f'gui/{os.getuid()}'
-PROMPT = '/timesheet-calendar fill my time for today'
+PROMPT = 'fill my time for today'
+
+
+def skill_command():
+    # Plugin skills are namespaced by plugin name; personal skills aren't
+    skill_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    manifest = os.path.join(skill_dir, '..', '..', '.claude-plugin', 'plugin.json')
+    if os.path.exists(manifest):
+        return f'/{json.load(open(manifest))["name"]}:timesheet-calendar'
+    return '/timesheet-calendar'
 # launchd jobs can't read ~/Documents (privacy protection), where the skill may live, so the job runs a copy
 BIN = os.path.expanduser('~/.claude/timesheet-calendar/bin')
 SNOOZE = {'15 minutes': 15, '30 minutes': 30, '1 hour': 60, '2 hours': 120}
@@ -78,8 +86,8 @@ def installed_terminals():
     return sorted(found, key=lambda t: t != current), current
 
 
-def open_claude(app, cwd, claude):
-    cmd = f'cd {shlex.quote(cwd)} && {shlex.quote(claude)} {shlex.quote(PROMPT)}'
+def open_claude(app, cwd, claude, command):
+    cmd = f'cd {shlex.quote(cwd)} && {shlex.quote(claude)} {shlex.quote(command + " " + PROMPT)}'
     if app == 'Terminal':
         r = osa(f'tell application "Terminal"\nactivate\ndo script {ascript(cmd)}\nend tell')
     elif app == 'iTerm':
@@ -151,7 +159,8 @@ def fire():
             if not terminal or not cwd:
                 return
             set_prefs(reminder_terminal=terminal, reminder_cwd=cwd)
-            open_claude(terminal, cwd, p.get('claude_path') or shutil.which('claude') or 'claude')
+            open_claude(terminal, cwd, p.get('claude_path') or shutil.which('claude') or 'claude',
+                        p.get('reminder_command', '/timesheet-calendar'))
             return
         if choice != 'Remind me later…':
             return
@@ -176,6 +185,7 @@ def main():
     on.add_argument('--days', choices=['weekdays', 'daily'], default='weekdays')
     on.add_argument('--terminal')
     on.add_argument('--cwd')
+    on.add_argument('--command', help='slash command that starts the skill (default: detected)')
     fo = sub.add_parser('folder')
     fo.add_argument('dir', nargs='?')
     fo.add_argument('--reset', action='store_true')
@@ -186,13 +196,12 @@ def main():
 
     if a.cmd == 'status':
         p = prefs()
-        legacy = [x for x in LEGACY if os.path.exists(x)]
-        if loaded() or legacy:
-            print(f'on: {p.get("reminder_days", "weekdays")} at {p.get("reminder_time", "17:30")}'
-                  + (f' (older job: {legacy[0]})' if legacy else ''))
+        if loaded():
+            print(f'on: {p.get("reminder_days", "weekdays")} at {p.get("reminder_time", "17:30")}')
         else:
             print('off' if 'reminder' in p else 'never set up')
         print(f'folder: {p.get("reminder_cwd", "(asked on first Do it now)")}')
+        print(f'command: {p.get("reminder_command", "/timesheet-calendar")} {PROMPT}')
         ask = 'asks each time' if p.get('reminder_terminal_ask') != 'off' else 'opens without asking'
         print(f'terminal: {p.get("reminder_terminal", "(none yet)")}, {ask}')
     elif a.cmd == 'terminals':
@@ -236,8 +245,7 @@ def main():
         h, m = map(int, a.time.split(':'))
         days = range(1, 6) if a.days == 'weekdays' else [None]
         intervals = [{**({'Weekday': d} if d else {}), 'Hour': h, 'Minute': m} for d in days]
-        for x in LEGACY + [PLIST]:
-            unload(x)
+        unload(PLIST)
         os.makedirs(BIN, exist_ok=True)
         here = os.path.dirname(os.path.abspath(__file__))
         for name in ('reminder.py', 'projects.py'):
@@ -249,13 +257,14 @@ def main():
         r = launchctl('bootstrap', DOMAIN, PLIST)
         if r.returncode:
             sys.exit(f'launchctl failed: {r.stderr.strip()}')
+        command = a.command or skill_command()
         set_prefs(reminder='on', reminder_time=f'{h:02d}:{m:02d}', reminder_days=a.days, claude_path=claude,
+                  reminder_command=command,
                   **({'reminder_terminal': terminal} if terminal else {}), **({'reminder_cwd': cwd} if cwd else {}))
         print(f'Reminder on: {a.days} at {h:02d}:{m:02d} (local time); '
-              f'"Do it now" starts Claude in {cwd or "(folder asked on first use)"}')
+              f'"Do it now" runs {command} in {cwd or "(folder asked on first use)"}')
     elif a.cmd == 'off':
-        for x in LEGACY + [PLIST]:
-            unload(x)
+        unload(PLIST)
         set_prefs(reminder='off')
         print('Reminder off')
     elif a.cmd in ('test', 'fire'):

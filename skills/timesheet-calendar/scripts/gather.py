@@ -10,9 +10,12 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-TZ = ZoneInfo(os.environ.get('TIMESHEET_TZ', 'Europe/Amsterdam'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import config
+
+TZ = ZoneInfo(os.environ.get('TIMESHEET_TZ') or config.get('timezone'))
 PROJECTS = os.path.expanduser('~/.claude/projects')
-DEFAULT_AUTHOR = subprocess.run(['git', 'config', 'user.name'], capture_output=True, text=True).stdout.strip()
+DEFAULT_AUTHOR = config.get('author') or subprocess.run(['git', 'config', 'user.name'], capture_output=True, text=True).stdout.strip()
 
 
 def claude_dir(path):
@@ -163,7 +166,7 @@ def main():
     c.add_argument('dirs', nargs='+')
     c.add_argument('--since', required=True)
     c.add_argument('--until', required=True, help='inclusive end date')
-    c.add_argument('--author', default=DEFAULT_AUTHOR, help='git --author regex, e.g. "name\\|Full Name"')
+    c.add_argument('--author', default=DEFAULT_AUTHOR, help='git --author regex, e.g. "name|Full Name"')
     c.add_argument('--skip-session', help='session id to ignore (the current one)')
     c.add_argument('--no-github', action='store_true', help='skip PR titles and reviews from GitHub')
     a = ap.parse_args()

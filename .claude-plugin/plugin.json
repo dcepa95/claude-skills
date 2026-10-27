@@ -1,0 +1,14 @@
+{
+  "name": "dcepa95",
+  "description": "dcepa95's Claude Code skills: timesheet-calendar rebuilds worked hours from git history and Claude Code sessions and adds them as blocks to a private Google Calendar that Productive reads, with a daily macOS reminder.",
+  "author": {
+    "name": "dcepa95"
+  },
+  "repository": "https://github.com/dcepa95/claude-skills",
+  "keywords": [
+    "timesheet",
+    "productive",
+    "google-calendar",
+    "time-tracking"
+  ]
+}

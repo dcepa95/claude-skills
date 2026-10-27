@@ -1,6 +1,6 @@
 ---
 name: timesheet-calendar
-description: Reconstruct what the user worked on (from git commits, reflogs and Claude Code conversations in folders they choose), lay it out as 9:00–18:00 time blocks per day, and import those blocks as events into their private "Tasks Tracking" Google Calendar so Productive can turn them into timesheet entries. Use this whenever the user wants to fill in timesheets, log hours, track or reconstruct what they worked on for a day/week/month, fill timesheet gaps, or add work blocks to their calendar or Productive, even if they only say "do it for today" or "what did I work on last week" in a timesheet context. Also use it to manage the skill's settings (projects and colours, task naming, the work folder, the default terminal, and the daily timesheet reminder on/off/time) and to show its shortcut commands (`/timesheet-calendar help`).
+description: Reconstruct what the user worked on (from git commits, reflogs and Claude Code conversations in folders they choose), lay it out as time blocks within the working day, and import those blocks as events into their private "Tasks Tracking" Google Calendar so Productive can turn them into timesheet entries. Use this whenever the user wants to fill in timesheets, log hours, track or reconstruct what they worked on for a day/week/month, fill timesheet gaps, or add work blocks to their calendar or Productive, even if they only say "do it for today" or "what did I work on last week" in a timesheet context. Also use it to manage the skill's settings (projects and colours, task naming, the work folder, the default terminal, and the daily timesheet reminder on/off/time) and to show its shortcut commands (`help`) or redo setup (`setup`).
 ---
 
 # Timesheet → Calendar
@@ -9,7 +9,30 @@ Rebuild the user's working days from evidence, agree on the blocks with them, th
 
 The user's calendar is shared with colleagues and holds real meetings, so the two things that matter most are: **never touch an event you didn't create in this flow**, and **never write to the calendar before the user approves a dry run**. Everything else is judgement.
 
-User defaults (calendar ID, git author, lunch) are in `references/config.md`. Read it first; if something there no longer matches reality, ask rather than guess.
+Personal settings (calendars, git author, working day, lunch) and data live in `~/.claude/timesheet-calendar/`, outside the skill; `references/config.md` describes them. Scripts are in `${CLAUDE_SKILL_DIR}/scripts`. The skill is invoked as `/dcepa95:timesheet-calendar` when installed as a plugin, or `/timesheet-calendar` as a personal skill; use whichever form started this run when you print commands.
+
+## Setup (first run)
+
+Run `python3 ${CLAUDE_SKILL_DIR}/scripts/config.py show` at the start of every run. Do this setup before anything else if its last line says `setup: needed`, or if the argument is `setup`:
+
+1. Explain in two lines what the skill needs. Blocks go into a **private** Google Calendar that Productive reads, so colleagues looking at your calendar don't see them. The Google Calendar connector can't create calendars.
+2. Ask **"Do you have a private calendar for timesheet blocks?"**:
+   - `Yes, pick it from my calendars`
+   - `No, I'll create one now`: then explain the steps and wait for the user to say done:
+     1. In Google Calendar, go to Other calendars → + → Create new calendar and name it `Tasks Tracking`.
+     2. In Productive, turn that calendar on in the calendar integration settings.
+3. Run `list_calendars`, then `config.py guess`, and ask in one call:
+   - **Timesheet calendar**: the user's own secondary calendars. Never offer the primary calendar, because colleagues can see it.
+   - **Meetings calendar**: the primary calendar (Recommended).
+   - **Holidays**: the holiday calendars found, plus `None`.
+   - **Git author**: the `guess` value (Recommended), the name alone, or the email name alone.
+4. Ask **"Working day?"**:
+   - `09:00–18:00, lunch 12:30–13:30 (Recommended)`
+   - `08:30–17:30, lunch 12:00–13:00`
+   - `10:00–19:00, lunch 13:00–14:00`
+5. Save each answer with `config.py set <key> <value>`, show `config.py show`, then carry on with what the user asked for. With `setup` alone, stop here.
+
+The reminder question comes at the end of the first run (see step 5 of the main flow).
 
 ## How to ask
 
@@ -24,7 +47,7 @@ The user should be able to get through a whole run by picking options, typing on
 
 ## 0. Start
 
-Run `python3 <skill-dir>/scripts/ledger.py gaps` first. It prints the last day with logged blocks and the weekdays of the last two weeks with nothing logged, which makes the range options concrete.
+Run `python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py gaps` first. It prints the last day with logged blocks and the weekdays of the last two weeks with nothing logged, which makes the range options concrete.
 
 If the argument is a shortcut (see "Shortcuts and help"), handle it and stop. If the request already names a range or an action, skip this question. Otherwise ask **"What do you want to log?"**:
 - `Today (<Mon 27 Oct>)` (Recommended late in the day)
@@ -39,9 +62,9 @@ A typed range ("October", "14–18 Oct") works via Other. Weekdays only unless t
 Run discovery:
 
 ```bash
-python3 <skill-dir>/scripts/gather.py discover <parent-dir> --since <start-date> --author '<author regex>'
-python3 <skill-dir>/scripts/projects.py match <every discovered dir>
-python3 <skill-dir>/scripts/projects.py pref last_folders
+python3 ${CLAUDE_SKILL_DIR}/scripts/gather.py discover <parent-dir> --since <start-date>
+python3 ${CLAUDE_SKILL_DIR}/scripts/projects.py match <every discovered dir>
+python3 ${CLAUDE_SKILL_DIR}/scripts/projects.py pref last_folders
 ```
 
 `<parent-dir>` is the working directory the user started Claude in, the folder they chose. If that directory is itself a git repo, use its parent. Then one `AskUserQuestion` call:
@@ -62,7 +85,7 @@ Save the folder choice: `projects.py pref last_folders '<dir>,<dir>'`.
 For every chosen folder `match` reports as `UNKNOWN`, set the project up before collecting evidence. One call, three questions:
 - **Project** in Productive: existing projects first when the folder might belong to a known client (a new checkout of a known repo), else a guess from the folder name.
 - **Service**: the services already used by that project, or a sensible guess (`Development`, `Development hours`).
-- **Colour**: run `projects.py colors` first. Offer three unused colours as `🟧 Tangerine`-style labels. Put the full list in the question text so any other can be typed. Mention that `! python3 <skill-dir>/scripts/projects.py colors` shows real swatches.
+- **Colour**: run `projects.py colors` first. Offer three unused colours as `🟧 Tangerine`-style labels. Put the full list in the question text so any other can be typed. Mention that `! python3 ${CLAUDE_SKILL_DIR}/scripts/projects.py colors` shows real swatches.
 
 Save: `projects.py set <KEY> --short '<Client · Service>' --project '<name, with {YYYY}/{MM} if per month>' --service '<service>' --color <name or id> --folders '<glob>'`. Use a glob that covers sibling checkouts (`repo*`).
 
@@ -71,7 +94,7 @@ If a folder matches the wrong project, fix the entry with `projects.py set` inst
 ## 2. Collect evidence
 
 ```bash
-python3 <skill-dir>/scripts/gather.py collect --since <start> --until <end> --author '<author regex>' --skip-session <current-session-id> <dir> [<dir> ...]
+python3 ${CLAUDE_SKILL_DIR}/scripts/gather.py collect --since <start> --until <end> --skip-session <current-session-id> <dir> [<dir> ...]
 ```
 
 Pass the current session's id (the UUID in your scratchpad or transcript path) to `--skip-session` so this conversation doesn't count as work. Output is per day:
@@ -82,7 +105,7 @@ Pass the current session's id (the UUID in your scratchpad or transcript path) t
 
 Days are marked `(WEEKEND)`. If GitHub was skipped, mention once that `brew install gh && gh auth login` adds PR titles and review time, then move on. Save long output to the scratchpad.
 
-Fetch three things from Google Calendar for the range with `list_events` (`startTime`, `endTime`, `pageSize: 250`), using the calendar IDs from config, and save each to a scratchpad file:
+Fetch three things from Google Calendar for the range with `list_events` (`startTime`, `endTime`, `pageSize: 250`), using the calendar IDs from `config.py show`, and save each to a scratchpad file:
 - **Meetings**: the primary calendar. Out-of-office events come back here too.
 - **Already logged**: the Tasks Tracking calendar. Re-runs fill gaps only.
 - **Holidays**: the public-holiday calendar.
@@ -93,9 +116,9 @@ Follow any `nextPageToken` and pass both pages.
 
 **Naming.** If there's a branch → PR map, ask **"How should tasks be named?"** with options `PR title` and `Branch name`, each with a real example from this run in `preview` (`#3864 Cart shipping missing` vs `#3864 - Show shipping costs in cart summary`). Put the value of `projects.py pref title_source` first, marked "(last used)". Save with `projects.py pref title_source pr|branch`. Without a PR map, use branch names and don't ask.
 
-Turn evidence into blocks between 09:00 and 18:00, as `[date, start, end, projectKey, task, title, evidence]`:
+Turn evidence into blocks within the `workday` hours, as `[date, start, end, projectKey, task, title, evidence]`:
 - Evidence marks **when** something was happening, not how long it took. Be generous: assume work started well before a commit and continued until the next sign of different work. A branch checked out from 11:56 to 14:46 filled that span.
-- Leave meetings uncovered and keep lunch (config) free.
+- Leave meetings uncovered and keep `lunch` free.
 - Absorb gaps of 15 minutes or less into the neighbouring block, or leave them out. No 10-minute blocks.
 - Leave time already covered by Tasks Tracking events alone.
 - Tidy branch names (`story/#3864-cart-shipping-missing` → `#3864 Cart shipping missing`). Branches without a PR always use the branch name. Titles say what was done.
@@ -109,7 +132,7 @@ Turn evidence into blocks between 09:00 and 18:00, as `[date, start, end, projec
 Write the plan JSON (format in `references/config.md`) and run:
 
 ```bash
-python3 <skill-dir>/scripts/plan.py plan.json --meetings <file> --existing <file> --holidays <file> --out events.json
+python3 ${CLAUDE_SKILL_DIR}/scripts/plan.py plan.json --meetings <file> --existing <file> --holidays <file> --out events.json
 ```
 
 It prints the dry-run table, per-day totals (new + already logged + meetings), then two lists:
@@ -149,7 +172,7 @@ Create each event from `events.json` with `create_event` on the Tasks Tracking c
 After **each** batch, record what came back before sending the next:
 
 ```bash
-python3 <skill-dir>/scripts/ledger.py add <calendarId> '<id>|<YYYY-MM-DDTHH:MM>|<summary>' [...]
+python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py add <calendarId> '<id>|<YYYY-MM-DDTHH:MM>|<summary>' [...]
 ```
 
 The ledger (`~/.claude/timesheet-calendar/created.jsonl`) outlives the conversation; the scratchpad doesn't. It is what proves an event is yours.
@@ -159,7 +182,7 @@ The ledger (`~/.claude/timesheet-calendar/created.jsonl`) outlives the conversat
 **Verify** by listing the Tasks Tracking calendar for the range (`list_events` with `calendarId`, `startTime`, `endTime`; no full-text search) and running:
 
 ```bash
-python3 <skill-dir>/scripts/ledger.py verify <list_events file> --since <start> --until <end>
+python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py verify <list_events file> --since <start> --until <end>
 ```
 
 Recreate anything reported missing, then verify again.
@@ -173,6 +196,7 @@ The skill takes shortcut arguments, so settings can be changed without going thr
 | Shortcut | Does |
 |---|---|
 | `help` | shows this list with the current values |
+| `setup` | calendars, git author and working day again |
 | `settings` | the settings menu |
 | `folder` · `folder <path>` · `folder reset` | the work folder: where **Do it now** starts Claude, so its subfolders are what gets scanned. `reset` makes the next **Do it now** ask again. |
 | `terminal` · `terminal <app>` · `terminal ask` · `terminal always` | the default terminal for **Do it now**. `ask` shows the picker each time with the default preselected; `always` opens the default without asking. |
@@ -184,16 +208,16 @@ The skill takes shortcut arguments, so settings can be changed without going thr
 **`help`** runs `reminder.py status` and `projects.py pref title_source`, then prints the table above with a "Now" column showing the current values. Under it, it lists the terminal equivalents, which work without starting Claude:
 
 ```
-! python3 <skill-dir>/scripts/reminder.py status
-! python3 <skill-dir>/scripts/reminder.py folder ~/Desktop/work
-! python3 <skill-dir>/scripts/reminder.py terminal iTerm --ask off
-! python3 <skill-dir>/scripts/reminder.py on --time 17:00 --days weekdays
-! python3 <skill-dir>/scripts/reminder.py off
-! python3 <skill-dir>/scripts/reminder.py test
-! python3 <skill-dir>/scripts/projects.py list
+! python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py status
+! python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py folder ~/work
+! python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py terminal iTerm --ask off
+! python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py on --time 17:00 --days weekdays
+! python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py off
+! python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py test
+! python3 ${CLAUDE_SKILL_DIR}/scripts/projects.py list
 ```
 
-Replace `<skill-dir>` with the real path when printing. Run nothing else for `help`.
+Replace `${CLAUDE_SKILL_DIR}` with the real path when printing. Run nothing else for `help`.
 
 ## Settings
 
@@ -213,14 +237,14 @@ Task naming is changed via Other or the `naming` shortcut.
 A different time goes via Other. If no work folder is set yet, ask the work folder question in the same call. Run `reminder.py on --time HH:MM --days weekdays|daily [--cwd <dir>]` or `reminder.py off`.
 
 The dialog has three buttons:
-- **Do it now**: shows the terminal picker with the default preselected, unless it's set to `always`. It opens a window in the work folder and starts `claude "/timesheet-calendar fill my time for today"`.
+- **Do it now**: shows the terminal picker with the default preselected, unless it's set to `always`. It opens a window in the work folder and starts `claude "<command> fill my time for today"`, where the command is `/dcepa95:timesheet-calendar` for the plugin (`reminder.py on` detects it; `--command` overrides).
   - Terminal and iTerm are scripted directly.
   - Apps without a scripting API (Hyper, Ghostty, Warp…) get a new window with the command typed in. That needs Accessibility permission, which macOS asks for once. Nothing is typed unless a new window is confirmed in front; otherwise the command goes to the clipboard.
   - With no work folder set, the first click asks for one.
 - **Remind me later…**: 15 minutes to 2 hours.
 - **Skip today**.
 
-It closes itself after 10 minutes if ignored. The launchd job runs a copy of `reminder.py` from `~/.claude/timesheet-calendar/bin` (background jobs can't read `~/Documents`), so after changing `reminder.py`, run `reminder.py on` again to refresh the copy. Don't run `reminder.py test` yourself, because it waits for a click; suggest the user runs `! python3 <skill-dir>/scripts/reminder.py test`. On anything but macOS, say it isn't supported.
+It closes itself after 10 minutes if ignored. The launchd job runs a copy of `reminder.py` from `~/.claude/timesheet-calendar/bin` (background jobs can't read `~/Documents`), so after changing `reminder.py`, run `reminder.py on` again to refresh the copy. Don't run `reminder.py test` yourself, because it waits for a click; suggest the user runs `! python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py test`. On anything but macOS, say it isn't supported.
 
 **Work folder.** Ask **"Which folder should Do it now start Claude in?"** Options:
 - the current one, marked "(current)"
