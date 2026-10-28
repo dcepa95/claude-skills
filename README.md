@@ -19,7 +19,18 @@ Or in two steps:
 /plugin install dcepa95@claude-skills
 ```
 
-The repo is private: your git needs access to it (SSH key or `gh auth login && gh auth setup-git`). Updates: `/plugin marketplace update claude-skills`.
+The repo is private: your git needs access to it (SSH key or `gh auth login && gh auth setup-git`).
+
+## Updating
+
+```
+claude plugin marketplace update claude-skills
+claude plugin update dcepa95@claude-skills
+```
+
+Then restart Claude Code. `claude plugin list` shows the installed version as a commit ID, which should match the latest commit here. If you use the daily reminder, run `/dcepa95:timesheet-calendar reminder on` once afterwards to refresh it. New settings a version needs are asked for on the next run.
+
+To update automatically, turn on auto-update for the `claude-skills` marketplace in `/plugin` → Marketplaces.
 
 ## timesheet-calendar
 
