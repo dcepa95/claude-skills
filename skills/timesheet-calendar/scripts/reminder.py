@@ -117,7 +117,7 @@ set args to paragraphs of (read POSIX file (bin & "/typer-in.txt") as «class ut
 set appName to item 1 of args
 set cmd to item 2 of args
 try
-	set running to application appName is running
+	set wasRunning to application appName is running
 	tell application appName to activate
 	tell application "System Events" to tell process appName
 		repeat 40 times
@@ -126,7 +126,7 @@ try
 		end repeat
 		if not frontmost then error appName & " didn't come to the front."
 		set n to 0
-		if running then
+		if wasRunning then
 			set n to count of windows
 			keystroke "n" using command down
 		end if
