@@ -89,6 +89,10 @@ The user should be able to get through a whole run by picking options, typing on
 
 Run `python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py gaps` first. It prints the last day with logged blocks and the weekdays of the last two weeks with nothing logged, which makes the range options concrete.
 
+Run `python3 ${CLAUDE_SKILL_DIR}/scripts/version.py check` alongside it, on every run including shortcuts. It prints nothing when the plugin is up to date (or offline). When it prints `UPDATE …`, ask before anything else **"A newer version of the plugin is available. Update first?"**, with the listed changes in the question text:
+- `Update now (Recommended)`: run `version.py update`. It updates the plugin and refreshes the daily reminder if it's on. Then stop and tell the user to restart Claude Code and run the same command again, because this session still has the old version loaded.
+- `Not now`: carry on with this version.
+
 If the argument is a shortcut (see "Shortcuts and help"), handle it and stop. If the request already names a range or an action, skip this question. Otherwise ask **"What do you want to log?"**:
 - `Today (<Mon 27 Oct>)` (Recommended late in the day)
 - `Missing days (<Thu 23, Mon 27>)`: the weekdays `gaps` reported, only if there are any. Recommended when there are earlier gaps.

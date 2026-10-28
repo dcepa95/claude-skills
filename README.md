@@ -23,6 +23,8 @@ The repo is private: your git needs access to it (SSH key or `gh auth login && g
 
 ## Updating
 
+Each run checks GitHub for a newer version first and offers to update. To update by hand:
+
 ```
 claude plugin marketplace update claude-skills
 claude plugin update dcepa95@claude-skills
@@ -96,7 +98,7 @@ Use the Import calendar time and meetings skill to log my completed calendar eve
 
 ## Developing
 
-Add the checkout as a local marketplace; edits apply on the next session or `/reload-plugins`:
+Add the checkout as a local marketplace. Claude Code runs a copy of the last commit, so commit, then run `claude plugin update dcepa95@claude-skills` (or accept the skill's update prompt) and restart:
 
 ```
 /plugin marketplace add ~/Documents/personal/claude-skills
