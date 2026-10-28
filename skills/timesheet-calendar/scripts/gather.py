@@ -98,6 +98,17 @@ def github(repos, since, add):
     return branches
 
 
+def ticket_numbers(branch):
+    """Ticket numbers leading the branch's last segment: fix/#3905-#3906-wishlist -> ['3905', '3906']."""
+    nums = []
+    for part in branch.rsplit('/', 1)[-1].split('-'):
+        m = re.fullmatch(r'#?(\d{3,6})', part)
+        if not m:
+            break
+        nums.append(m.group(1))
+    return nums
+
+
 def collect(dirs, since, until, author, skip, use_github):
     events = defaultdict(list)
     seen = set()
@@ -147,6 +158,13 @@ def collect(dirs, since, until, author, skip, use_github):
         print('Branch → PR')
         for b, title in sorted(branches.items()):
             print(f'  {b}  →  {title}')
+    evidence = ' '.join(f'{src} {text}' for day in events.values() for _, src, text in day)
+    known = {b for d in dirs if is_repo(d) for b in git(d, 'for-each-ref', '--format=%(refname:lstrip=2)', 'refs/heads').split()}
+    tickets = {b: ticket_numbers(b) for b in known if b in evidence and ticket_numbers(b)}
+    if tickets:
+        print('Branch → ticket')
+        for b, nums in sorted(tickets.items()):
+            print(f'  {b}  →  {" ".join("#" + n for n in nums)}')
     for day in sorted(events):
         print(f'\n=== {day:%a %d %b %Y}' + ('  (WEEKEND)' if day.weekday() >= 5 else ''))
         for t, src, text in sorted(events[day]):
