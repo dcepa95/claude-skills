@@ -112,7 +112,7 @@ def main():
             'summary': summary,
             'startTime': f'{d}T{s}:00', 'endTime': f'{d}T{e}:00',
             'colorId': pr['color'],
-            'description': f'Project: {pr["project"]}\nService: {pr["service"]}\nTask: {task}\nEvidence: {ev}\n\n{TAG}',
+            'description': f'Project: {pr["project"]}\nService: {pr["service"]}\nTask: {task}\n\n{TAG}',
             'useDefaultReminders': False, 'notificationLevel': 'NONE',
         })
     json.dump(out, open(a.out, 'w'), indent=1, ensure_ascii=False)
