@@ -51,7 +51,7 @@ Ask `Done` · `Skip for now (I'll do it later)`. Skipping is fine; the first imp
 1. Paste it into Productive AI chat, which creates the skill "Import calendar time and meetings".
 2. Replace the meetings placeholders with their recurring meetings and the project, budget, service and task those are logged on.
 
-Ask `Done` · `Later`. On `Done`, run `projects.py pref productive_skill done`.
+Ask `Done` · `Later`. On `Done`, run `projects.py pref productive_skill done`. If they named the skill differently in Productive, save that with `projects.py pref productive_skill_name '<name>'`.
 
 **5. The rest, in one call.** Run `config.py guess`, then ask:
 - **Meetings calendar**: the primary calendar (Recommended), read only.
@@ -226,8 +226,8 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py verify <list_events file> --since 
 Recreate anything reported missing, then verify again.
 
 Report: events created per day and the verification result. Then tell the user the next step is in Productive, because nothing is logged there yet:
-- If `projects.py pref productive_skill` is `done`, give one line to paste into Productive AI chat: `Import calendar time and meetings for <range, e.g. Tue 27 Oct>`.
-- Otherwise, explain that Productive AI needs the import skill once. Show the prompt from `references/productive-skill.md` as in setup step 4b, then that one line. Ask `Created it` (saves the pref) · `I'll add them by hand`. Adding them by hand means clicking each grey suggestion in My time → Calendar view after refreshing. Then, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. "No thanks" runs `reminder.py off`, which records the choice so it isn't asked again.
+- If `projects.py pref productive_skill` is `done`, give the run prompt from `references/productive-skill.md` ("Running it") in a code block, with the skill name and the imported range filled in, ready to paste into Productive AI chat.
+- Otherwise, explain that Productive AI needs the import skill once. Show the prompt from `references/productive-skill.md` as in setup step 4b, then the run prompt. Ask `Created it` (saves the pref) · `I'll add them by hand`. Adding them by hand means clicking each grey suggestion in My time → Calendar view after refreshing. Then, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. "No thanks" runs `reminder.py off`, which records the choice so it isn't asked again.
 
 ## Shortcuts and help
 

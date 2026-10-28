@@ -68,6 +68,12 @@ Summarize the dates processed, entries created or updated, and total time logged
 Ask me for any missing mapping details rather than guessing.
 ```
 
+After each import, run it from Productive AI chat. Use the name you gave the skill, and the dates you imported:
+
+```
+Use the Import calendar time and meetings skill to log my completed calendar events for [date or date range]. Check for existing entries to avoid duplicates. Use the part of each event title after "|" as the entry's description, word for word, keeping the Jira ticket number at the start (e.g. "#3864 Cart shipping missing"). Pick the project, service and task from the Project, Service and Task lines in the event description, and if a task's name contains the same ticket number, link that task. Report anything you couldn't confidently match.
+```
+
 ## Developing
 
 Add the checkout as a local marketplace; edits apply on the next session or `/reload-plugins`:
