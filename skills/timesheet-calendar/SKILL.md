@@ -297,7 +297,7 @@ A different time goes via Other. **Do it now** starts Claude in `projects_dir`. 
 The dialog has three buttons:
 - **Do it now**: shows the terminal picker with the default preselected, unless it's set to `always`. It opens a window in the projects folder and starts `claude "<command> fill my time for today"`, where the command is `/dcepa95:timesheet-calendar` for the plugin (`reminder.py on` detects it; `--command` overrides).
   - Terminal and iTerm are scripted directly.
-  - Apps without a scripting API (Hyper, Ghostty, Warp…) get a new window with the command typed in. That needs Accessibility permission, which macOS asks for once. Nothing is typed unless a new window is confirmed in front; otherwise the command goes to the clipboard.
+  - Apps without a scripting API (Hyper, Ghostty, Warp…) get a new window with the command typed in. A small helper app, "Timesheet Reminder" (installed by `reminder on`), does the typing, so it needs Accessibility permission: macOS asks once, and if it's missing the alert opens the setting. When setting up the reminder with Hyper, Ghostty or similar, tell the user to allow "Timesheet Reminder" when macOS asks. Nothing is typed unless a new window is confirmed in front; otherwise the command goes to the clipboard.
   - With no folder set, the first click asks for one.
 - **Remind me later…**: 15 minutes to 2 hours.
 - **Skip today**.
