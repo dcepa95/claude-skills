@@ -158,7 +158,7 @@ Turn evidence into blocks within the `workday` hours, as `[date, start, end, pro
 - Absorb gaps of 15 minutes or less into the neighbouring block, or leave them out. No 10-minute blocks.
 - Leave time already covered by events in the timesheet calendar alone.
 - Tidy branch names (`story/#3864-cart-shipping-missing` → `#3864 Cart shipping missing`). Branches without a PR always use the branch name.
-- Start the title with the Jira ticket number when the work has one. `gather.py` prints a `Branch → ticket` map, taken from the number at the start of the branch name (`fix/3891-account-nav` → `#3891`, `feature/#3905-#3906-wishlist` → `#3905 #3906`). Without a ticket, use no number; don't use the PR number in its place, except for release blocks.
+- Start the title with the Jira ticket number when the work has one. `gather.py` prints a `Branch → ticket` map, taken from the number at the start of the branch name (`fix/3891-account-nav` → `#3891`, `feature/#3905-#3906-wishlist` → `#3905 #3906`). Without a ticket from the branch, look up `projects.py pref 'ticket:<branch or title>'`. If that's empty, ask in step 4. Never use the PR number in its place, except for release blocks.
 - Keep the rest of the title very short, like a ticket name: 2–4 words, at most about 30 characters after the number. Examples: `#3864 Cart shipping missing`, `#3891 Account nav underline`, `Forms reCAPTCHA`, `Contentful redirects`, `Review budget branch`, `Release #3230 / #3205`. Name the topic, not the work done on it: no colons with explanations, no "check if…" or "resolve … server side". Details go in the evidence column of the dry run; it never reaches the calendar. Consecutive blocks on the same topic get the same title.
 - PR reviews get their own block (`Review PR #123 …`) in the repo's project.
 - Merges into staging/develop, release PRs and cherry-picks are their own `Releases` blocks.
@@ -188,6 +188,7 @@ Show the dry-run table per day (time, title, task, evidence), the meetings left 
 | Day under 7h (`Thu 23: 5h 15m`) | `Leave it (half day)` · `Fill the gaps with inferred work` · `Skip the day` |
 | Day over 9h | `Keep it` · `Trim to 9h (drop the last inferred block)` |
 | Blocks on a weekend, holiday or OOO day | `Keep them` · `Drop them` |
+| Block without a ticket number (not a release, review or inferred block) | One question per topic, not per block, up to 4 per call: **"Does `<title>` have a Jira ticket?"**. Options: `No ticket`, plus `#<n> <name>` for tickets seen nearby in the evidence that could fit. Any other ticket is typed via Other as `#1234 Ticket name`. With a ticket, the title becomes `#1234 <short ticket name>`, following the short-title rule. Remember the answer with `projects.py pref 'ticket:<branch or title>' '#1234 Ticket name'` (or `none`), and check that pref before asking, so the same topic isn't asked again. |
 | Inferred stretches | multiSelect `Which inferred blocks should I keep?`, one option per block (title + time), up to 4. If there are more, use one option per day. |
 | An existing block in the timesheet calendar looks wrong given new evidence | `Leave it` · `Replace it with <new title>` (only if `ledger.py has` succeeds; otherwise only `Leave it` and tell the user) |
 
