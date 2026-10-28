@@ -14,7 +14,7 @@ Usage:
   ledger.py gaps [--days N]                           last logged day, weekdays in the last N days (default 14) with nothing logged,
                                                       and days with blocks not yet in Productive
 """
-import argparse, json, os, sys
+import argparse, json, os, re, sys
 from datetime import date, datetime, timedelta, timezone
 
 LEDGER = os.path.expanduser(os.environ.get('TIMESHEET_LEDGER', '~/.claude/timesheet-calendar/created.jsonl'))
@@ -131,6 +131,10 @@ def main():
         append([e])
         print(f'Updated {a.id}')
     elif a.cmd == 'imported':
+        a.dates = [d for arg in a.dates for d in re.split(r'[\s,]+', arg) if d]
+        bad = [d for d in a.dates if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', d)]
+        if bad:
+            sys.exit(f'Not a YYYY-MM-DD date: {", ".join(bad)}')
         done = imported()
         if a.check:
             print('in Productive: ' + (' '.join(d for d in a.dates if d in done) or 'none'))
