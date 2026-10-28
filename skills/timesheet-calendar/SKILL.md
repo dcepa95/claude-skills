@@ -88,6 +88,7 @@ Run `python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py gaps` first. It prints the la
 If the argument is a shortcut (see "Shortcuts and help"), handle it and stop. If the request already names a range or an action, skip this question. Otherwise ask **"What do you want to log?"**:
 - `Today (<Mon 27 Oct>)` (Recommended late in the day)
 - `Missing days (<Thu 23, Mon 27>)`: the weekdays `gaps` reported, only if there are any. Recommended when there are earlier gaps.
+- `Send to Productive (<Mon 27>)`: only if `gaps` lists days not yet in Productive. It shows the run prompt for those days, then asks whether the import worked, as in step 5.
 - `Yesterday` or `This week so far`, whichever fits better
 - `Settings`: go to "Settings" below.
 
@@ -166,7 +167,7 @@ Turn evidence into blocks within the `workday` hours, as `[date, start, end, pro
 - Keep the rest of the title very short, like a ticket name: 2–4 words, at most about 30 characters after the number. Examples: `#3864 Cart shipping missing`, `#3891 Account nav underline`, `Forms reCAPTCHA`, `Contentful redirects`, `Review budget branch`, `Release #3230 / #3205`. Name the topic, not the work done on it: no colons with explanations, no "check if…" or "resolve … server side". Details go in the evidence column of the dry run; it never reaches the calendar. Consecutive blocks on the same topic get the same title.
 - PR reviews get their own block (`Review PR #123 …`) in the repo's project.
 - Merges into staging/develop, release PRs and cherry-picks are their own `Releases` blocks.
-- Stretches with no evidence: infer from the task in progress before and after, and say "inferred" in the evidence. Don't invent specific work.
+- Stretches with no evidence (30 min or more), such as the start of the day before the first sign of work: don't invent a topic. Leave them as **unknown** and ask in step 4. A single question to Claude, a quick lookup or a one-off prompt marks a moment, not a topic: fold it into the surrounding block instead of naming a block after it.
 - Weekends, holidays and out-of-office days get no blocks unless the evidence clearly shows work.
 - Don't fill time that hasn't happened yet today.
 - Take the project from the folder the evidence came from.
@@ -192,8 +193,8 @@ Show the dry-run table per day (time, title, task, evidence), the meetings left 
 | Day under 7h (`Thu 23: 5h 15m`) | `Leave it (half day)` · `Fill the gaps with inferred work` · `Skip the day` |
 | Day over 9h | `Keep it` · `Trim to 9h (drop the last inferred block)` |
 | Blocks on a weekend, holiday or OOO day | `Keep them` · `Drop them` |
-| Block without a ticket number (not a release, review or inferred block) | One question per topic, not per block, up to 4 per call: **"Does `<title>` have a Jira ticket?"**. Options: `No ticket`, plus `#<n> <name>` for tickets seen nearby in the evidence that could fit. Any other ticket is typed via Other as `#1234 Ticket name`. With a ticket, the title becomes `#1234 <short ticket name>`, following the short-title rule. Remember the answer with `projects.py pref 'ticket:<branch or title>' '#1234 Ticket name'` (or `none`), and check that pref before asking, so the same topic isn't asked again. |
-| Inferred stretches | multiSelect `Which inferred blocks should I keep?`, one option per block (title + time), up to 4. If there are more, use one option per day. |
+| Block without a ticket number (not a release or review) | One question per topic, not per block, up to 4 per call: **"Ticket for `<title>`?"**. Options: `No ticket`, plus up to 2 tickets from `gather.py`'s `Recent tickets` list that plausibly fit (`#3927 Homepage load optimization`). Say in the question text that a number can be typed via Other, e.g. `3899`. A bare number is enough: take the name from the block title, then build `#3899 Forms reCAPTCHA`. Save it with `projects.py pref 'ticket:<branch or title>' '#3899 Forms reCAPTCHA'` (or `none`), and check that pref before asking, so a topic is asked once. |
+| Unknown stretch (no evidence) | **"What were you doing <09:00–10:12>?"**, one per stretch, up to 4 per call. Options are the topics just before and after it, including the day before for a morning stretch (`#3927 Homepage load optimization`). `Leave it empty` is always last. A typed answer becomes a new topic, which then gets the ticket question. |
 | An existing block in the timesheet calendar looks wrong given new evidence | `Leave it` · `Replace it with <new title>` (only if `ledger.py has` succeeds; otherwise only `Leave it` and tell the user) |
 
 Apply the answers, re-run `plan.py`, and show the table again only if something changed.
@@ -232,7 +233,11 @@ Recreate anything reported missing, then verify again.
 
 Report: events created per day and the verification result. Then tell the user the next step is in Productive, because nothing is logged there yet:
 - If `projects.py pref productive_skill` is `done`, give the run prompt from `references/productive-skill.md` ("Running it") in a code block, with the skill name and the imported range filled in, ready to paste into Productive AI chat.
-- Otherwise, explain that Productive AI needs the import skill once. Show the prompt from `references/productive-skill.md` as in setup step 4b, then the run prompt. Ask `Created it` (saves the pref) · `I'll add them by hand`. Adding them by hand means clicking each grey suggestion in My time → Calendar view after refreshing. Then, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. "No thanks" runs `reminder.py off`, which records the choice so it isn't asked again.
+- Otherwise, explain that Productive AI needs the import skill once. Show the skill from `references/productive-skill.md` as in setup step 4b, then the run prompt. Ask `Created it` (saves the pref) · `I'll add them by hand`. Adding them by hand means clicking each grey suggestion in My time → Calendar view after refreshing.
+
+Then ask **"Did the import into Productive work?"**: `Yes, imported` · `Not yet`. On yes, run `ledger.py imported <dates>`. That's what later warns before a day already in Productive is changed. `ledger.py gaps` lists days with blocks that aren't marked as imported yet.
+
+Finally, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. Answering `Off` runs `reminder.py off`, which records the choice so it isn't asked again.
 
 ## Shortcuts and help
 
@@ -249,6 +254,8 @@ The skill takes shortcut arguments, so settings can be changed without going thr
 | `projects` | add, rename or recolour projects |
 | `naming` · `naming pr` · `naming branch` | name tasks after PR titles or branch names |
 | `productive` | shows the Productive AI skill prompt again |
+| `fix` · `fix <day>` | change blocks already in the calendar: rename, set a ticket, retime or delete (see "Fixing a day") |
+| `imported <day>` · `not imported <day>` | mark days as added to Productive, or undo that |
 | `today` · `yesterday` · `this week` · `missing` · `14–18 Oct` | log hours for that range (anything else is read as a range or a request) |
 
 **`help`** runs `reminder.py status` and `projects.py pref title_source`, then prints the table above with a "Now" column showing the current values. Under it, it lists the terminal equivalents, which work without starting Claude:
@@ -312,14 +319,20 @@ Run `reminder.py terminal <app> --ask on|off`.
 
 After any change made from the menu, ask `Done` · `Change something else` · `Log hours now`. Shortcuts with a value just confirm.
 
-## Changing or removing events later
+## Fixing a day
 
-An event is yours to change only if `ledger.py has <id>` succeeds. Anything else (meetings, events the user made, even apparent duplicates) is off limits: tell the user and let them handle it.
+Reached with `fix <day>`, or when the user asks to change, rename, retime or delete blocks. An event is yours to change only if `ledger.py has <id>` succeeds. Anything else (meetings, events the user made, even apparent duplicates) is off limits: tell the user and let them handle it.
 
-Productive copies an event into a separate time entry when the user adds it, and later calendar changes don't reach that entry. So before renaming, moving or deleting blocks, ask **"Have you already added these days to Productive?"**: `No, change the calendar (Recommended)` · `Yes, leave them`. If yes, explain that Productive keeps the old version. Any change must then be made in Productive by hand, and changed events may show up there as suggestions again, which mustn't be added a second time.
-
-Before deleting or changing your own events, list them and ask a multiSelect `Which blocks should I delete?` (title + time per option, grouped by day when there are more than 4). Then confirm with `Delete <N> blocks` · `Cancel`. After deleting, run `ledger.py remove <id>`.
-
-To move events between calendars: create the copies and record them, verify all of them, then delete the originals and mark them removed. Never delete first.
+1. Run `ledger.py list --since <day> --until <day>` and `ledger.py imported --check <day>`, and show the day's blocks as a numbered table: time, title, ticket.
+2. If the day is already in Productive, say so before anything else. Productive copies an event into a separate entry, and calendar changes never reach it. Ask `Change the calendar anyway` (Productive then needs the same fix by hand; changed blocks may show up there as suggestions again, which mustn't be added twice) · `Cancel`.
+3. Ask a multiSelect **"Which blocks?"**, one option per block (`10:50 Contentful redirects`). For more than 4 blocks, offer `All blocks` and the 3 most likely ones, and take the rest by number via Other.
+4. Ask **"What should change?"**: `Title or ticket` · `Times` · `Delete`. A typed instruction ("make the morning homepage work") is fine too.
+5. Show the result as a before/after table and ask `Apply` · `Change something`.
+6. Apply it:
+   - **Title, ticket or description:** `update_event` in place, then `ledger.py update <id> --summary '<new title>'`. Rebuild the description the way `plan.py` does, so ticket links appear.
+   - **Times:** `update_event` with the new `startTime`/`endTime`, then `ledger.py update <id> --start <YYYY-MM-DDTHH:MM>`. First check the new times against meetings and the other blocks.
+   - **Delete:** `delete_event`, then `ledger.py remove <id>`.
+   - **Re-create** (delete and add) only when the user asks for it. Then create the copies and record them, verify all of them, delete the originals and mark them removed. Never delete first.
+7. If the day was in Productive, run `ledger.py imported --undo <day>` and give the run prompt again, so the user re-imports after fixing Productive.
 
 `ledger.py list --since <d> --until <d>` shows what you've created for a range.

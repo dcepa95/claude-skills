@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import config
+import config, projects
 
 TZ = ZoneInfo(os.environ.get('TIMESHEET_TZ') or config.get('timezone'))
 PROJECTS = os.path.expanduser('~/.claude/projects')
@@ -109,6 +109,31 @@ def ticket_numbers(branch):
     return nums
 
 
+def recent_tickets(dirs, since, until):
+    """[(label, last seen)] for ticket branches checked out since `since`, plus tickets the user named before."""
+    seen = {}
+    for d in dirs:
+        if not is_repo(d):
+            continue
+        for line in git(d, 'reflog', '--date=iso-strict', '--format=%gd\t%gs').splitlines():
+            m = re.match(r'HEAD@\{(.+?)\}\tcheckout: moving from (\S+) to (\S+)', line)
+            if not m:
+                continue
+            t = iso(m.group(1))
+            if not since <= t < until:
+                continue
+            for b in m.group(2, 3):
+                nums = ticket_numbers(b)
+                if nums:
+                    words = b.rsplit('/', 1)[-1].split('-')[len(nums):]
+                    label = ' '.join('#' + n for n in nums) + ' ' + ' '.join(words).capitalize()
+                    seen[label] = max(seen.get(label, t), t)
+    prefs = projects.load().get('prefs', {})
+    named = [v for k, v in prefs.items() if k.startswith('ticket:') and v != 'none']
+    return [(v, None) for v in dict.fromkeys(named)] + sorted(
+        ((k, t) for k, t in seen.items() if k not in named), key=lambda kv: kv[1], reverse=True)
+
+
 def collect(dirs, since, until, author, skip, use_github):
     events = defaultdict(list)
     seen = set()
@@ -165,6 +190,11 @@ def collect(dirs, since, until, author, skip, use_github):
         print('Branch → ticket')
         for b, nums in sorted(tickets.items()):
             print(f'  {b}  →  {" ".join("#" + n for n in nums)}')
+    candidates = recent_tickets(dirs, since - timedelta(days=21), until)
+    if candidates:
+        print('Recent tickets (options when asking about blocks without one)')
+        for label, seen in candidates[:8]:
+            print(f'  {label}  ' + (f'(last seen {seen:%a %d %b})' if seen else '(named before)'))
     for day in sorted(events):
         print(f'\n=== {day:%a %d %b %Y}' + ('  (WEEKEND)' if day.weekday() >= 5 else ''))
         for t, src, text in sorted(events[day]):
