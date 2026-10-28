@@ -38,40 +38,48 @@ Your settings, projects and the list of events the plugin created live in `~/.cl
 
 ### Importing into Productive
 
-The plugin fills your calendar; turning the blocks into time entries happens in Productive. To have Productive AI do that instead of clicking each suggestion, create a skill in Productive with the prompt below. Replace the placeholders in the meetings part with your recurring meetings and where they're logged.
+The plugin fills your calendar; turning the blocks into time entries happens in Productive. Create this skill once in Productive AI, replacing the bracketed placeholders with your timezone, your recurring meetings, and the project, service and task those meetings are logged on.
 
-Every block this plugin creates has `Project:`, `Service:` and `Task:` lines in its description, so the skill can map it without guessing.
-
-```
-Create a skill called Import calendar time and meetings for my time tracking.
-
-When I invoke it for a date or range:
-
-Read my connected calendar in my local timezone. Process only events that have ended.
-
-Import work events that clearly identify a Productive project and service. Use the event's duration, local start time and title or description, and link the entry to the calendar event.
-
-Link the named task when it can be identified confidently. A broader existing task is acceptable if it clearly matches. If the project and service are clear but the task isn't, log without a task if permitted and flag it. Don't guess a project or service.
-
-Before creating an entry, check whether the event is already linked to one. Don't create duplicates. If it overlaps manually logged time and it's unclear whether the work is already represented, skip it for review.
-
-After importing work events, check for these meetings:
-
-Meeting titles: [list titles]
-Project and monthly budget: [name]
-Service: [name]
-Task: [name]
-Use each occurrence's actual local date and time, including rescheduled occurrences. If an entry already exists but has the wrong or missing service or task, update only those fields.
-
-Summarize the dates processed, entries created or updated, and total time logged. Flag skipped events and entries without tasks, and link the affected project and tasks.
-
-Ask me for any missing mapping details rather than guessing.
-```
-
-After each import, run it from Productive AI chat. Use the name you gave the skill, and the dates you imported:
+The skill reads the `Project:`, `Service:` and `Task:` lines every block carries, plus the `Jira:` or `GitHub:` ticket link when there is one, so it maps blocks without guessing. Ticket blocks become two bullets in Productive: the linked ticket number, then the task.
 
 ```
-Use the Import calendar time and meetings skill to log my completed calendar events for [date or date range]. Check for existing entries to avoid duplicates. Use the part of each event title after "|" as the entry's description, word for word, keeping the Jira ticket number at the start (e.g. "#3864 Cart shipping missing"). Pick the project, service and task from the Project, Service and Task lines in the event description, and if a task's name contains the same ticket number, link that task. Report anything you couldn't confidently match.
+Name: Import calendar time and meetings
+
+Description: Logs completed personal-calendar work into Productive, then assigns named meetings to a meetings task without duplicates.
+
+Instructions:
+Use this workflow when asked to import personal calendar time for a date range. Apply it to the date or range requested, not a fixed date.
+
+Scope and safety
+Confirm the requested date range. Use [your timezone, e.g. Europe/Amsterdam] time.
+Process only events that have already ended. Never log future calendar events.
+Do not duplicate time: before creating an entry, check whether an entry already links to the same calendar event. If a matching entry already exists, leave it unchanged unless it is missing a service or task that can be resolved confidently.
+Keep existing manually logged time intact. If a calendar event overlaps manual time and it is unclear whether it is already represented, do not create a second entry; report it for review.
+
+1. Import personal-calendar work first
+Read personal calendar events in the requested period. Prioritize events whose description explicitly names a Productive project, service, and task, especially imported work events.
+Pick the project, service, and task from the Project, Service, and Task lines in the event description. Resolve them in Productive; do not guess if the project or service cannot be confidently resolved.
+For the time-entry description, use the portion of the event title after the first |, removing only surrounding whitespace. If there is no |, use the event title as written. Do not add project, service, evidence, or import metadata.
+When the title begins with a ticket number and the calendar description provides its ticket link (a "Jira:" or "GitHub:" line), format the time-entry description as two bullet points on separate lines: first the ticket number linked to that URL, then the remaining task description word for word. For example: - [#3864](ticket URL) followed by - Cart shipping missing. If no matching link is available, keep the title text as written without inventing a link.
+If a task name in the resolved project contains the same ticket number, link that task when the match is unambiguous. Otherwise resolve the task named in the event description; use a broader existing developer task only if it is an unambiguous match. If the task cannot be resolved confidently but the project and service can, log against the service without a task and report the missing task. If a task is mandatory, leave the event unlogged and report it.
+Use the event duration and local start time, and link the time entry to the source calendar event.
+
+2. Process existing meeting events
+After work-event imports, process these personal calendar meeting titles: [meeting titles, e.g. Daily Stand Up, Refinement].
+Explicitly check for each of them on each date in the requested range, including rescheduled recurring occurrences. Use the occurrence's actual local start date and time, not the original date embedded in its event identifier.
+Assign each completed occurrence to [project or budget, e.g. "Client Sprints" for that month], its [service] service, and the [meetings task] task.
+First check for an existing time entry linked to the meeting calendar event. If it exists but lacks the correct service or task, load it and update only those fields. If no time entry exists, create one for the event duration, with the event title as the note and the calendar event linked.
+
+Output
+Briefly state the dates processed, the number of entries created or updated, and total logged time.
+Report anything that could not be matched confidently, including entries logged without a task, and list events skipped because they were future or overlapped existing manual time.
+Link the affected project and any identified tasks in the final response.
+```
+
+After each import, run it from Productive AI chat, with the name you gave the skill and the dates you imported:
+
+```
+Use the Import calendar time and meetings skill to log my completed calendar events for [date or date range].
 ```
 
 ## Developing
