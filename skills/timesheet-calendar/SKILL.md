@@ -123,6 +123,8 @@ For every chosen folder `match` reports as `UNKNOWN`, set the project up before 
 - **Service**: the services already used by that project, or a sensible guess (`Development`, `Development hours`).
 - **Colour**: run `projects.py colors` first. Offer three unused colours as `🟧 Tangerine`-style labels. Put the full list in the question text so any other can be typed. Mention that `! python3 ${CLAUDE_SKILL_DIR}/scripts/projects.py colors` shows real swatches.
 
+If the project's tickets live in Jira, ask for one ticket link in the same call and turn it into a template with `{n}` for the number (`https://x.atlassian.net/browse/ABC-{n}`). Blocks whose title starts with a ticket number then get a `Jira:` link in their description.
+
 Save: `projects.py set <KEY> --short '<Client · Service>' --project '<name, with {YYYY}/{MM} if per month>' --service '<service>' --color <name or id> --folders '<glob>'`. Use a glob that covers sibling checkouts (`repo*`).
 
 If a folder matches the wrong project, fix the entry with `projects.py set` instead of working around it.
@@ -302,7 +304,7 @@ Show the subfolders each would scan in the description. Run `reminder.py folder 
 
 Run `reminder.py terminal <app> --ask on|off`.
 
-**Projects.** Show `projects.py list`. Ask which project, with each project as an option (`🩷 Mammut · Dev hours`) plus `Add a new project`. Then ask what to change: `Colour` · `Title prefix` · `Productive project/service` · `Remove`. Colour follows the colour question from "New projects", and the rest are typed. Save with `projects.py set|remove`. After a recolour or rename, ask `Update events already created` · `Only future events`, and update only events that `ledger.py has` confirms are yours.
+**Projects.** Show `projects.py list`. Ask which project, with each project as an option (`🩷 Mammut · Dev hours`) plus `Add a new project`. Then ask what to change: `Colour` · `Title prefix` · `Productive project/service` · `Jira link`, with `Remove` via Other. Colour follows the colour question from "New projects", and the rest are typed. Save with `projects.py set|remove`. After a recolour or rename, ask `Update events already created` · `Only future events`, and update only events that `ledger.py has` confirms are yours.
 
 **Task naming.** Ask `PR title` · `Branch name`, then run `projects.py pref title_source pr|branch`.
 

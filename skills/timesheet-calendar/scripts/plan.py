@@ -10,7 +10,7 @@ Each option can be repeated (e.g. one file per page of results).
 plan.json: {"rows": [["2026-10-26", "09:00", "09:30", "M", "Task", "Title", "Evidence"], ...]}
 Project keys come from the registry (projects.py); an optional "projects" object in plan.json overrides it.
 """
-import argparse, json, os, sys
+import argparse, json, os, re, sys
 from collections import defaultdict
 from datetime import date, datetime
 
@@ -49,6 +49,14 @@ def all_day_dates(e):
         return []
     start, end = date.fromisoformat(s), date.fromisoformat(e['end']['date'])
     return [date.fromordinal(o).isoformat() for o in range(start.toordinal(), end.toordinal())]
+
+
+def jira_lines(pr, title):
+    """One 'Jira: <link>' line per ticket number leading the title, if the project has a Jira link."""
+    m = re.match(r'((?:#\d+\s*)+)', title)
+    if not (pr.get('jira') and m):
+        return ''
+    return ''.join(f'Jira: {pr["jira"].replace("{n}", n)}\n' for n in re.findall(r'\d+', m.group(1)))
 
 
 def main():
@@ -112,7 +120,7 @@ def main():
             'summary': summary,
             'startTime': f'{d}T{s}:00', 'endTime': f'{d}T{e}:00',
             'colorId': pr['color'],
-            'description': f'Project: {pr["project"]}\nService: {pr["service"]}\nTask: {task}\n\n{TAG}',
+            'description': f'Project: {pr["project"]}\nService: {pr["service"]}\nTask: {task}\n{jira_lines(pr, title)}\n{TAG}',
             'useDefaultReminders': False, 'notificationLevel': 'NONE',
         })
     json.dump(out, open(a.out, 'w'), indent=1, ensure_ascii=False)

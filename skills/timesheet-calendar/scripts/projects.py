@@ -5,12 +5,13 @@ Usage:
   projects.py colors                      show the Google Calendar event palette
   projects.py list                        show remembered projects
   projects.py match DIR [DIR ...]         map folders to projects (UNKNOWN if none)
-  projects.py set KEY [--short S] [--project P] [--service S] [--color C] [--folders GLOB,GLOB]
+  projects.py set KEY [--short S] [--project P] [--service S] [--color C] [--folders GLOB,GLOB] [--jira URL]
   projects.py remove KEY
   projects.py pref NAME [VALUE]           read or remember a preference (e.g. title_source pr|branch)
 
 --project may contain {YYYY} and {MM}; they're filled from each block's date.
 --color takes an id (1-11) or a name (e.g. flamingo).
+--jira is a ticket link with {n} for the number, e.g. https://x.atlassian.net/browse/ABC-{n}; '' removes it.
 """
 import argparse, fnmatch, json, os, sys
 from datetime import date
@@ -75,7 +76,7 @@ def main():
     m.add_argument('dirs', nargs='+')
     s = sub.add_parser('set')
     s.add_argument('key')
-    for f in ('short', 'project', 'service', 'color', 'folders'):
+    for f in ('short', 'project', 'service', 'color', 'folders', 'jira'):
         s.add_argument(f'--{f}')
     r = sub.add_parser('remove')
     r.add_argument('key')
@@ -106,6 +107,8 @@ def main():
         for f in ('short', 'project', 'service'):
             if getattr(a, f):
                 p[f] = getattr(a, f)
+        if a.jira is not None:
+            p['jira'] = a.jira
         if a.color:
             p['color'] = color_id(a.color)
         if a.folders:
