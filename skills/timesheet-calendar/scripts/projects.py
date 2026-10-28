@@ -5,15 +5,17 @@ Usage:
   projects.py colors                      show the Google Calendar event palette
   projects.py list                        show remembered projects
   projects.py match DIR [DIR ...]         map folders to projects (UNKNOWN if none)
-  projects.py set KEY [--short S] [--project P] [--service S] [--color C] [--folders GLOB,GLOB] [--jira URL]
+  projects.py set KEY [--short S] [--project P] [--service S] [--color C] [--folders GLOB,GLOB] [--tickets URL]
   projects.py remove KEY
   projects.py pref NAME [VALUE]           read or remember a preference (e.g. title_source pr|branch)
 
 --project may contain {YYYY} and {MM}; they're filled from each block's date.
 --color takes an id (1-11) or a name (e.g. flamingo).
---jira is a ticket link with {n} for the number, e.g. https://x.atlassian.net/browse/ABC-{n}; '' removes it.
+--tickets takes a link to any one ticket (Jira, or a GitHub issue / project board item) and stores the pattern
+for all of the project's tickets; 'none' records that it has no ticket board, '' forgets the setting.
 """
-import argparse, fnmatch, json, os, sys
+import argparse, fnmatch, json, os, re, sys
+from urllib.parse import parse_qs, unquote, urlparse
 from datetime import date
 
 STORE = os.path.expanduser(os.environ.get('TIMESHEET_PROJECTS', '~/.claude/timesheet-calendar/projects.json'))
@@ -40,6 +42,30 @@ def color_id(c):
         if name.lower() == c.lower():
             return k
     sys.exit(f'Unknown colour {c!r}; run `projects.py colors`')
+
+
+def ticket_template(url):
+    """Ticket link pattern with {n} for the number, from a link to one ticket. None if not recognised."""
+    u = urlparse(url.strip())
+    q = {k: v[0] for k, v in parse_qs(u.query).items()}
+    jira = re.search(r'\b([A-Z][A-Z0-9]+)-\d+\b', unquote(url))
+    if 'atlassian.net' in u.netloc and jira:
+        return f'https://{u.netloc}/browse/{jira.group(1)}-{{n}}'
+    if u.netloc == 'github.com':
+        gh = re.match(r'/([^/]+)/([^/]+)/(?:issues|pull)/\d+', u.path)
+        if gh:
+            return f'https://github.com/{gh.group(1)}/{gh.group(2)}/issues/{{n}}'
+        item = unquote(q.get('issue', ''))  # project board pane: issue=owner|repo|123
+        if item.count('|') == 2:
+            owner, repo, _ = item.split('|')
+            return f'https://github.com/{owner}/{repo}/issues/{{n}}'
+    if '{n}' in url:
+        return url.strip()
+    return None
+
+
+def ticket_label(template):
+    return 'Jira' if 'atlassian.net' in template else 'GitHub' if 'github.com' in template else 'Ticket'
 
 
 def load():
@@ -76,7 +102,7 @@ def main():
     m.add_argument('dirs', nargs='+')
     s = sub.add_parser('set')
     s.add_argument('key')
-    for f in ('short', 'project', 'service', 'color', 'folders', 'jira'):
+    for f in ('short', 'project', 'service', 'color', 'folders', 'tickets'):
         s.add_argument(f'--{f}')
     r = sub.add_parser('remove')
     r.add_argument('key')
@@ -107,8 +133,16 @@ def main():
         for f in ('short', 'project', 'service'):
             if getattr(a, f):
                 p[f] = getattr(a, f)
-        if a.jira is not None:
-            p['jira'] = a.jira
+        if a.tickets == '':
+            p.pop('tickets', None)
+        elif a.tickets == 'none':
+            p['tickets'] = 'none'
+        elif a.tickets:
+            t = ticket_template(a.tickets)
+            if not t:
+                sys.exit(f"Can't tell the ticket pattern from {a.tickets!r}; pass it with {{n}} for the number")
+            p['tickets'] = t
+            print(f'Tickets: {t}')
         if a.color:
             p['color'] = color_id(a.color)
         if a.folders:

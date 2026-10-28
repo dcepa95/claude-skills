@@ -15,7 +15,7 @@ from collections import defaultdict
 from datetime import date, datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from projects import load as load_projects, resolve, save as save_projects
+from projects import load as load_projects, resolve, save as save_projects, ticket_label
 
 TAG = '[timesheet-import · created by Claude]'
 
@@ -51,12 +51,13 @@ def all_day_dates(e):
     return [date.fromordinal(o).isoformat() for o in range(start.toordinal(), end.toordinal())]
 
 
-def jira_lines(pr, title):
-    """One 'Jira: <link>' line per ticket number leading the title, if the project has a Jira link."""
+def ticket_lines(pr, title):
+    """One '<Jira|GitHub>: <link>' line per ticket number leading the title, if the project has a ticket link."""
     m = re.match(r'((?:#\d+\s*)+)', title)
-    if not (pr.get('jira') and m):
+    if not (pr.get('tickets', 'none') != 'none' and m):
         return ''
-    return ''.join(f'Jira: {pr["jira"].replace("{n}", n)}\n' for n in re.findall(r'\d+', m.group(1)))
+    label = ticket_label(pr['tickets'])
+    return ''.join(f'{label}: {pr["tickets"].replace("{n}", n)}\n' for n in re.findall(r'\d+', m.group(1)))
 
 
 def main():
@@ -120,7 +121,7 @@ def main():
             'summary': summary,
             'startTime': f'{d}T{s}:00', 'endTime': f'{d}T{e}:00',
             'colorId': pr['color'],
-            'description': f'Project: {pr["project"]}\nService: {pr["service"]}\nTask: {task}\n{jira_lines(pr, title)}\n{TAG}',
+            'description': f'Project: {pr["project"]}\nService: {pr["service"]}\nTask: {task}\n{ticket_lines(pr, title)}\n{TAG}',
             'useDefaultReminders': False, 'notificationLevel': 'NONE',
         })
     json.dump(out, open(a.out, 'w'), indent=1, ensure_ascii=False)

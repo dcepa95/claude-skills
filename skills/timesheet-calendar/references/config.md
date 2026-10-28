@@ -5,7 +5,7 @@ Everything personal lives in `~/.claude/timesheet-calendar/`, outside the skill,
 | File | Holds | Managed with |
 |---|---|---|
 | `projects.json` → `config` | calendars, git author, working day, lunch, timezone | `scripts/config.py show / set` |
-| `projects.json` → `projects` | projects, colours, folder globs, Jira link template | `scripts/projects.py` |
+| `projects.json` → `projects` | projects, colours, folder globs, ticket link pattern (Jira or GitHub) | `scripts/projects.py` |
 | `projects.json` → `prefs` | task naming, last folders, reminder settings | `projects.py pref`, `reminder.py` |
 | `created.jsonl` | every event this skill created (the only events it may change) | `scripts/ledger.py` |
 | `bin/` | copy of the reminder scripts the launchd job runs | `reminder.py on` |
