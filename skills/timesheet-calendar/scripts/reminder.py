@@ -40,9 +40,9 @@ BIN = os.path.expanduser('~/.claude/timesheet-calendar/bin')
 SNOOZE = {'15 minutes': 15, '30 minutes': 30, '1 hour': 60, '2 hours': 120}
 GIVE_UP = 600
 
-# app name -> TERM_PROGRAM value
-TERMINALS = {'Terminal': 'Apple_Terminal', 'iTerm': 'iTerm.app', 'Hyper': 'Hyper', 'Ghostty': 'ghostty',
-             'Warp': 'WarpTerminal', 'WezTerm': 'WezTerm', 'Alacritty': 'alacritty', 'kitty': 'kitty'}
+# app name -> TERM_PROGRAM value. Only apps that take a command over AppleScript: others would need typed
+# keystrokes, which macOS blocks for launchd jobs without an Accessibility grant.
+TERMINALS = {'Terminal': 'Apple_Terminal', 'iTerm': 'iTerm.app'}
 APP_DIRS = ['/Applications', os.path.expanduser('~/Applications'), '/System/Applications/Utilities']
 
 
@@ -88,90 +88,15 @@ def installed_terminals():
 
 def open_claude(app, cwd, claude, command):
     cmd = f'cd {shlex.quote(cwd)} && {shlex.quote(claude)} {shlex.quote(command + " " + PROMPT)}'
-    if app == 'Terminal':
-        r = osa(f'tell application "Terminal"\nactivate\ndo script {ascript(cmd)}\nend tell')
-    elif app == 'iTerm':
+    if app == 'iTerm':
         r = osa(f'tell application "iTerm"\nactivate\nset w to (create window with default profile)\n'
                 f'tell current session of w to write text {ascript(cmd)}\nend tell')
     else:
-        r = type_in_new_window(app, cmd)
+        r = osa(f'tell application "Terminal"\nactivate\ndo script {ascript(cmd)}\nend tell')
     if r.returncode:
         subprocess.run(['pbcopy'], input=cmd, text=True)
-        if 'not allowed assistive access' in r.stderr:
-            why = f'Allow "{TYPER_NAME}" in Privacy & Security → Accessibility (opening it now), then use Do it now again.'
-            subprocess.run(['open', 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'])
-        else:
-            why = r.stderr.strip()
         osa(f'display alert "Timesheet reminder couldn\'t open {app}" message '
-            f'{ascript(why + chr(10) + chr(10) + "Nothing was typed. The command is on your clipboard.")}')
-
-
-# Apps without a scripting API (Hyper, Ghostty, ...) get a new window with the command typed in. macOS only lets
-# an app with Accessibility permission type, and launchd jobs and osascript have none, so the typing happens
-# inside a small applet the user allows once. Rebuilding it resets that permission, so it only changes with TYPER.
-# Only types once a new window is confirmed in front, so keystrokes never land in an existing session.
-TYPER_NAME = 'Timesheet Reminder'
-TYPER_APP = os.path.join(BIN, f'{TYPER_NAME}.app')
-TYPER = '''set bin to "%s"
-set args to paragraphs of (read POSIX file (bin & "/typer-in.txt") as «class utf8»)
-set appName to item 1 of args
-set cmd to item 2 of args
-try
-	set wasRunning to application appName is running
-	tell application appName to activate
-	tell application "System Events" to tell process appName
-		repeat 40 times
-			if frontmost then exit repeat
-			delay 0.25
-		end repeat
-		if not frontmost then error appName & " didn't come to the front."
-		set n to 0
-		if wasRunning then
-			set n to count of windows
-			keystroke "n" using command down
-		end if
-		repeat 40 times
-			if (count of windows) > n then exit repeat
-			delay 0.25
-		end repeat
-		if (count of windows) <= n then error "No new " & appName & " window appeared."
-		delay 1.5
-		if not frontmost then error appName & " lost focus before typing."
-		keystroke cmd
-		key code 36
-	end tell
-	set msg to ""
-on error e
-	set msg to e
-end try
-do shell script "printf %%s " & quoted form of msg & " > " & quoted form of (bin & "/typer-out.txt")
-'''
-
-
-def install_typer():
-    src, path = TYPER % BIN, os.path.join(BIN, 'typer.applescript')
-    if os.path.exists(TYPER_APP) and os.path.exists(path) and open(path).read() == src:
-        return
-    shutil.rmtree(TYPER_APP, ignore_errors=True)
-    with open(path, 'w') as f:
-        f.write(src)
-    subprocess.run(['osacompile', '-o', TYPER_APP, path], check=True)
-    # No Dock icon; re-sign since editing Info.plist breaks the applet's signature
-    subprocess.run(['plutil', '-insert', 'LSUIElement', '-bool', 'true', os.path.join(TYPER_APP, 'Contents', 'Info.plist')], check=True)
-    subprocess.run(['codesign', '-f', '-s', '-', TYPER_APP], capture_output=True, check=True)
-
-
-def type_in_new_window(app, cmd):
-    if not os.path.exists(TYPER_APP):
-        return subprocess.CompletedProcess([], 1, '', 'Run `reminder.py on` once to install the typing helper.')
-    out = os.path.join(BIN, 'typer-out.txt')
-    with open(os.path.join(BIN, 'typer-in.txt'), 'w') as f:
-        f.write(f'{app}\n{cmd}\n')
-    if os.path.exists(out):
-        os.remove(out)
-    subprocess.run(['open', '-W', '-n', TYPER_APP])
-    err = open(out).read().strip() if os.path.exists(out) else f"{TYPER_NAME} didn't run."
-    return subprocess.CompletedProcess([], 1 if err else 0, '', err)
+            f'{ascript(r.stderr.strip() + chr(10) + chr(10) + "The command is on your clipboard.")}')
 
 
 def ask():
@@ -205,7 +130,7 @@ def fire():
     while True:
         choice = ask()
         if choice == 'Do it now':
-            last = p.get('reminder_terminal')
+            last = p.get('reminder_terminal') if p.get('reminder_terminal') in TERMINALS else None
             terminal = last if last and p.get('reminder_terminal_ask') == 'off' else pick_terminal(last)
             cwd = p.get('reminder_cwd') or pick_folder()
             if not terminal or not cwd:
@@ -302,7 +227,10 @@ def main():
         here = os.path.dirname(os.path.abspath(__file__))
         for name in ('reminder.py', 'projects.py'):
             shutil.copy2(os.path.join(here, name), BIN)
-        install_typer()
+        shutil.rmtree(os.path.join(BIN, 'Timesheet Reminder.app'), ignore_errors=True)
+        for name in ('typer.applescript', 'typer-in.txt', 'typer-out.txt'):
+            if os.path.exists(os.path.join(BIN, name)):
+                os.remove(os.path.join(BIN, name))
         os.makedirs(os.path.dirname(PLIST), exist_ok=True)
         with open(PLIST, 'wb') as f:
             plistlib.dump({'Label': LABEL, 'ProgramArguments': [sys.executable, os.path.join(BIN, 'reminder.py'), 'fire'],
