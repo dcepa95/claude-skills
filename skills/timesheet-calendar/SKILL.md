@@ -1,6 +1,6 @@
 ---
 name: timesheet-calendar
-description: Reconstruct what the user worked on (from git commits, reflogs and Claude Code conversations in folders they choose), lay it out as time blocks within the working day, and import those blocks as events into a private Google Calendar of their choosing so Productive can turn them into timesheet entries. Use this whenever the user wants to fill in timesheets, log hours, track or reconstruct what they worked on for a day/week/month, fill timesheet gaps, or add work blocks to their calendar or Productive, even if they only say "do it for today" or "what did I work on last week" in a timesheet context. Also use it to manage the skill's settings (projects and colours, task naming, the work folder, the default terminal, and the daily timesheet reminder on/off/time) and to show its shortcut commands (`help`) or redo setup (`setup`).
+description: Reconstruct what the user worked on (from git commits, reflogs and Claude Code conversations in folders they choose), lay it out as time blocks within the working day, and import those blocks as events into a private Google Calendar of their choosing so Productive can turn them into timesheet entries. Use this whenever the user wants to fill in timesheets, log hours, track or reconstruct what they worked on for a day/week/month, fill timesheet gaps, or add work blocks to their calendar or Productive, even if they only say "do it for today" or "what did I work on last week" in a timesheet context. Also use it to manage the skill's settings (projects and colours, task naming, the projects folder and which folders to check, the default terminal, and the daily timesheet reminder on/off/time) and to show its shortcut commands (`help`) or redo setup (`setup`).
 ---
 
 # Timesheet → Calendar
@@ -53,13 +53,17 @@ Ask `Done` · `Skip for now (I'll do it later)`. Skipping is fine; the first imp
 
 Ask `Done` · `Later`. On `Done`, run `projects.py pref productive_skill done`. If they named the skill differently in Productive, save that with `projects.py pref productive_skill_name '<name>'`.
 
-**5. The rest, in one call.** Run `config.py guess`, then ask:
+**5. Your projects folder.** Run `config.py guess`. Ask **"Which folder holds all your projects?"**, offering its `projects_dir candidate` lines with their repo counts (`~/Desktop/work (21 git repos)`, most first, the top one Recommended). Any other path goes via Other. Save it with `config.py set projects_dir <dir>`, which also checks that the folder exists.
+
+**6. Which folders to check.** Run `gather.py discover <projects_dir> --since <60 days ago>` and ask a multiSelect **"Which of these should I check for your work?"**. Use one option per real folder, by exact name, most active first, with commit and session counts in the description; split over several questions if there are more than 4. Folders without recent activity can be typed via Other. Save the choice with `projects.py pref last_folders '<dir>,<dir>'`. These are the defaults each run starts with, marked "(last used)". Then set up projects for the chosen folders, as in "New projects" in step 1.
+
+**7. The rest, in one call.** Ask:
 - **Meetings calendar**: the primary calendar (Recommended), read only.
 - **Holidays**: holiday calendars from `list_calendars` (e.g. `Holidays in Netherlands`), plus `None`.
 - **Git author**: the `guess` value (Recommended), the name alone, or the email name alone. It's the regex matched against commit authors.
 - **Working day**: `09:00–18:00, lunch 12:30–13:30 (Recommended)` · `08:30–17:30, lunch 12:00–13:00` · `10:00–19:00, lunch 13:00–14:00`
 
-**6. Save and confirm.** Run `config.py set` for each value:
+**8. Save and confirm.** Run `config.py set` for each value:
 - `target_calendar`: the new calendar's ID
 - `meetings_calendar`
 - `holiday_calendar`
@@ -104,7 +108,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/projects.py match <every discovered dir>
 python3 ${CLAUDE_SKILL_DIR}/scripts/projects.py pref last_folders
 ```
 
-`<parent-dir>` is the working directory the user started Claude in, the folder they chose. If that directory is itself a git repo, use its parent. Then one `AskUserQuestion` call:
+`<parent-dir>` is `config.py get projects_dir`, the folder the user picked at setup. If they started Claude in a folder outside it, also include that folder's own repos. Then one `AskUserQuestion` call:
 
 **"Which folders in `<parent-dir>` should I scan?"** (multiSelect). Every option is one real folder, labelled with its exact name (`mammut-ecom-platform-2`). Don't use group labels like "Same as last time", project names, or "both checkouts".
 - In each description, put the commit and session counts in the range, the project it matches, and "(last used)" if it's in `last_folders`.
@@ -248,7 +252,8 @@ The skill takes shortcut arguments, so settings can be changed without going thr
 | `help` | shows this list with the current values |
 | `setup` | walks through setup again: Google Calendar connection, timesheet calendar, Productive, git author, working day |
 | `settings` | the settings menu |
-| `folder` · `folder <path>` · `folder reset` | the work folder: where **Do it now** starts Claude, so its subfolders are what gets scanned. `reset` makes the next **Do it now** ask again. |
+| `folder` · `folder <path>` | the projects folder: where the skill looks for your work, and where **Do it now** starts Claude. Sets both `config.py set projects_dir` and `reminder.py folder`. |
+| `folders` | which folders inside it are checked by default |
 | `terminal` · `terminal <app>` · `terminal ask` · `terminal always` | the default terminal for **Do it now**. `ask` shows the picker each time with the default preselected; `always` opens the default without asking. |
 | `reminder` · `reminder on` · `reminder off` · `reminder 17:00` · `reminder daily` · `reminder weekdays` | the daily reminder |
 | `projects` | add, rename or recolour projects |
@@ -276,7 +281,7 @@ Replace `${CLAUDE_SKILL_DIR}` with the real path when printing. Run nothing else
 
 Reached from the start menu, the `settings` shortcut, or when the user asks to change any of these. Run `reminder.py status` first, then ask **"What do you want to change?"**, with each option's description showing its current value:
 - `Daily reminder`: on or off, time and days
-- `Work folder`: the folder **Do it now** starts in
+- `Folders`: the projects folder, and which folders in it are checked
 - `Terminal`: the default terminal, and whether the reminder asks
 - `Projects`: add, rename or recolour
 
@@ -287,25 +292,23 @@ Task naming is changed via Other or the `naming` shortcut.
 - `Every day at 17:30`
 - `Off`
 
-A different time goes via Other. If no work folder is set yet, ask the work folder question in the same call. Run `reminder.py on --time HH:MM --days weekdays|daily [--cwd <dir>]` or `reminder.py off`.
+A different time goes via Other. **Do it now** starts Claude in `projects_dir`. Pass `--cwd <projects_dir>` when switching the reminder on. Run `reminder.py on --time HH:MM --days weekdays|daily [--cwd <dir>]` or `reminder.py off`.
 
 The dialog has three buttons:
-- **Do it now**: shows the terminal picker with the default preselected, unless it's set to `always`. It opens a window in the work folder and starts `claude "<command> fill my time for today"`, where the command is `/dcepa95:timesheet-calendar` for the plugin (`reminder.py on` detects it; `--command` overrides).
+- **Do it now**: shows the terminal picker with the default preselected, unless it's set to `always`. It opens a window in the projects folder and starts `claude "<command> fill my time for today"`, where the command is `/dcepa95:timesheet-calendar` for the plugin (`reminder.py on` detects it; `--command` overrides).
   - Terminal and iTerm are scripted directly.
   - Apps without a scripting API (Hyper, Ghostty, Warp…) get a new window with the command typed in. That needs Accessibility permission, which macOS asks for once. Nothing is typed unless a new window is confirmed in front; otherwise the command goes to the clipboard.
-  - With no work folder set, the first click asks for one.
+  - With no folder set, the first click asks for one.
 - **Remind me later…**: 15 minutes to 2 hours.
 - **Skip today**.
 
 It closes itself after 10 minutes if ignored. The launchd job runs a copy of `reminder.py` from `~/.claude/timesheet-calendar/bin` (background jobs can't read `~/Documents`), so after changing `reminder.py`, run `reminder.py on` again to refresh the copy. Don't run `reminder.py test` yourself, because it waits for a click; suggest the user runs `! python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py test`. On anything but macOS, say it isn't supported.
 
-**Work folder.** Ask **"Which folder should Do it now start Claude in?"** Options:
-- the current one, marked "(current)"
-- the directory this session runs in, if different
-- that directory's parent, if it's a git repo
-- `Ask me next time`
+**Folders.** Ask in one call:
+- **"Projects folder?"**: the current one marked "(current)", then other `config.py guess` candidates.
+- **"Which folders to check by default?"**: a multiSelect of the folders in it, as in setup step 6.
 
-Show the subfolders each would scan in the description. Run `reminder.py folder <dir>`, or `reminder.py folder --reset` for the last option.
+Save with `config.py set projects_dir <dir>` and `reminder.py folder <dir>`, and `projects.py pref last_folders '<dirs>'`.
 
 **Terminal.** One call with two questions:
 - **"Default terminal?"**: the apps from `reminder.py terminals`, current default first, marked "(current)".

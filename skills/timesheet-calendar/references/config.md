@@ -20,6 +20,7 @@ Don't edit the JSON by hand.
 | `meetings_calendar` | `primary` | where meetings are read from, never written |
 | `holiday_calendar` | none | public holidays, read only |
 | `author` | required | git `--author` regex, `a\|b` for several names |
+| `projects_dir` | required | folder holding all project checkouts; scanned each run |
 | `workday` | `09:00-18:00` | hours blocks are planned in |
 | `lunch` | `12:30-13:30` | kept free |
 | `timezone` | this machine's | IANA name |

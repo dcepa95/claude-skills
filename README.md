@@ -28,7 +28,8 @@ Run `/dcepa95:timesheet-calendar`. The first run walks you through setup:
 1. Connect Google Calendar to Claude (claude.ai → Settings → Connectors).
 2. Create a private calendar for your timesheet blocks, with a name of your choice.
 3. Show that calendar in Productive.
-4. Pick your meetings and holiday calendars, git author and working day.
+4. Pick the folder that holds your projects, and which folders in it to check.
+5. Pick your meetings and holiday calendars, git author and working day.
 
 Run `/dcepa95:timesheet-calendar setup` to go through it again. `/dcepa95:timesheet-calendar help` lists the shortcuts.
 
