@@ -31,10 +31,13 @@ PROMPT = 'fill my time for today'
 def skill_command():
     # Plugin skills are namespaced by plugin name; personal skills aren't
     skill_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    skill = os.path.basename(skill_dir)
     manifest = os.path.join(skill_dir, '..', '..', '.claude-plugin', 'plugin.json')
     if os.path.exists(manifest):
-        return f'/{json.load(open(manifest))["name"]}:timesheet-calendar'
-    return '/timesheet-calendar'
+        return f'/{json.load(open(manifest))["name"]}:{skill}'
+    return f'/{skill}'
+
+
 # launchd jobs can't read ~/Documents (privacy protection), where the skill may live, so the job runs a copy
 BIN = os.path.expanduser('~/.claude/timesheet-calendar/bin')
 SNOOZE = {'15 minutes': 15, '30 minutes': 30, '1 hour': 60, '2 hours': 120}
@@ -137,7 +140,7 @@ def fire():
                 return
             set_prefs(reminder_terminal=terminal, reminder_cwd=cwd)
             open_claude(terminal, cwd, p.get('claude_path') or shutil.which('claude') or 'claude',
-                        p.get('reminder_command', '/timesheet-calendar'))
+                        p.get('reminder_command', skill_command()))
             return
         if choice != 'Remind me later…':
             return
@@ -178,7 +181,7 @@ def main():
         else:
             print('off' if 'reminder' in p else 'never set up')
         print(f'folder: {p.get("reminder_cwd", "(asked on first Do it now)")}')
-        print(f'command: {p.get("reminder_command", "/timesheet-calendar")} {PROMPT}')
+        print(f'command: {p.get("reminder_command", skill_command())} {PROMPT}')
         ask = 'asks each time' if p.get('reminder_terminal_ask') != 'off' else 'opens without asking'
         print(f'terminal: {p.get("reminder_terminal", "(none yet)")}, {ask}')
     elif a.cmd == 'terminals':

@@ -67,7 +67,7 @@ def update():
             sys.exit(r.returncode)
     installed = json.load(open(os.path.join(PLUGINS, 'installed_plugins.json')))
     new = installed.get('plugins', installed)[key][0]['installPath']
-    reminder = os.path.join(new, 'skills', 'timesheet-calendar', 'scripts', 'reminder.py')
+    reminder = os.path.join(new, 'skills', os.path.basename(os.path.dirname(HERE)), 'scripts', 'reminder.py')
     status = subprocess.run([sys.executable, reminder, 'status'], capture_output=True, text=True).stdout
     if status.startswith('on:'):
         r = subprocess.run([sys.executable, reminder, 'on', '--time', status.split(' at ')[1].split()[0],

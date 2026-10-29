@@ -1,5 +1,11 @@
 # TEMP/TODO guard
 
+Install it:
+
+```
+/plugin install temp-guard --marketplace dcepa95/claude-skills
+```
+
 When you ask Claude for something temporary (a hardcoded value, a forced flag, a service turned on locally, debug logs), it marks each change with a `TEMP:` comment. Before Claude runs `git commit`, `git push` or `gh pr create`, a hook checks the lines that would ship:
 
 - **TEMP comments block the command.** Claude has to revert them, or ask you first. "Revert the temporary changes" finds them all.
@@ -13,4 +19,4 @@ To check a branch by hand:
 python3 <plugin dir>/hooks/markers.py scan --base develop
 ```
 
-See the [plugin README](../README.md) to install or update.
+See the [plugin README](../../README.md) to install or update.

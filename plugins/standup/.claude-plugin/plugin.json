@@ -1,0 +1,16 @@
+{
+  "name": "standup",
+  "description": "Writes your standup, end-of-day note, weekly recap or client summary from your commits, PRs and Claude conversations. Asks before posting to Slack.",
+  "author": {
+    "name": "dcepa95"
+  },
+  "repository": "https://github.com/dcepa95/claude-skills",
+  "keywords": [
+    "standup",
+    "status-update",
+    "slack"
+  ],
+  "dependencies": [
+    "timesheet"
+  ]
+}

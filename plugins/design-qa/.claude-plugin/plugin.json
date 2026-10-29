@@ -1,0 +1,13 @@
+{
+  "name": "design-qa",
+  "description": "Checks a page or component against its Figma design with measured properties and a pixel diff, across states and breakpoints, and says which file to fix.",
+  "author": {
+    "name": "dcepa95"
+  },
+  "repository": "https://github.com/dcepa95/claude-skills",
+  "keywords": [
+    "figma",
+    "design-qa",
+    "visual-testing"
+  ]
+}
