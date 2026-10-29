@@ -17,9 +17,13 @@ The install dialog in `/plugin` asks which plugins you want, one switch each. On
 | Design QA | [design-qa](../design-qa/README.md) |
 | TEMP guard | [temp-guard](../temp-guard/README.md) |
 
-When the next session starts, it installs the ones you switched on, and tells you to run `/reload-plugins` or restart to load them.
+Then:
 
-To change your choice later, run `/plugin configure default@dcepa95` and start a new session. Switching a plugin off doesn't uninstall it; remove it with `/plugin uninstall <name>@dcepa95`.
+1. Restart Claude Code. When the session starts, it installs the plugins you switched on and says which ones.
+2. Run `/reload-plugins` to load them into that session (or restart once more).
+3. Type `/` to check: `/timesheet:log`, `/ship:pr` and the others you picked are listed.
+
+To change your choice later, run `/plugin configure default@dcepa95`, restart, then run `/reload-plugins`. Switching a plugin off doesn't uninstall it; remove it with `/plugin uninstall <name>@dcepa95`.
 
 From the shell, `claude plugin install` doesn't show the dialog. Pass your choices instead, for example:
 

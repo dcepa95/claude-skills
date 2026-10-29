@@ -59,10 +59,14 @@ def main():
         (done if r.returncode == 0 else failed).append(p)
     parts = []
     if done:
-        parts.append('Installed ' + ', '.join(done) + '. Run /reload-plugins or restart Claude Code to use them.')
+        parts.append('Installed ' + ', '.join(done) + f' (picked in default@{market}). This session started before '
+                     'they were installed, so run /reload-plugins now to load them.')
     if failed:
         parts.append('Could not install ' + ', '.join(failed) + f'; try: claude plugin install <name>@{market}')
-    print(json.dumps({'systemMessage': ' '.join(parts)}))
+    msg = ' '.join(parts)
+    print(json.dumps({'systemMessage': msg, 'hookSpecificOutput': {
+        'hookEventName': 'SessionStart',
+        'additionalContext': msg + ' Tell the user this at the start of your first reply.'}}))
 
 
 if __name__ == '__main__':
