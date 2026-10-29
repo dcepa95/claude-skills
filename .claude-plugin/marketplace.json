@@ -39,6 +39,11 @@
       "name": "default",
       "source": "./plugins/default",
       "description": "Pick which of these plugins to install. Timesheet is on by default."
+    },
+    {
+      "name": "dcepa95",
+      "source": "./plugins/legacy-dcepa95",
+      "description": "Old name, don't install. Moves an install from the old claude-skills marketplace to default@dcepa95."
     }
   ]
 }

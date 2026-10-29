@@ -35,7 +35,7 @@ The repo is private: your git needs access to it (SSH key or `gh auth login && g
 
 ### Coming from `dcepa95@claude-skills`?
 
-The marketplace used to be called `claude-skills`, with everything in one `dcepa95` plugin. It's now called `dcepa95`, so replace it once:
+The marketplace used to be called `claude-skills`, with everything in one `dcepa95` plugin. It's now called `dcepa95`. Old installs show a notice at startup, and `/dcepa95:timesheet-calendar` (also what the daily reminder runs) offers to do the move for you, keeping the same plugins. Or replace it yourself once:
 
 ```
 claude plugin marketplace remove claude-skills
