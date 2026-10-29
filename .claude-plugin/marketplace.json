@@ -38,7 +38,7 @@
     {
       "name": "dcepa95",
       "source": "./plugins/dcepa95",
-      "description": "Installs the timesheet plugin. Kept so existing installs keep working; install the other plugins one by one."
+      "description": "Pick which of these plugins to install. Timesheet is on by default."
     }
   ]
 }
