@@ -1,6 +1,6 @@
 # ticket
 
-Install:
+Install it:
 
 ```
 /plugin install ticket --marketplace dcepa95/claude-skills

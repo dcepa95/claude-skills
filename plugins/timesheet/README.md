@@ -1,6 +1,6 @@
 # timesheet
 
-Install:
+Install it:
 
 ```
 /plugin install timesheet --marketplace dcepa95/claude-skills

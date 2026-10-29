@@ -1,6 +1,6 @@
 # TEMP/TODO guard
 
-Install:
+Install it:
 
 ```
 /plugin install temp-guard --marketplace dcepa95/claude-skills
