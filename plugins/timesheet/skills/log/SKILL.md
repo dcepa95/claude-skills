@@ -1,5 +1,5 @@
 ---
-name: timesheet-calendar
+name: log
 description: Reconstruct what the user worked on (from git commits, reflogs and Claude Code conversations in folders they choose), lay it out as time blocks within the working day, and import those blocks as events into a private Google Calendar of their choosing so Productive can turn them into timesheet entries. Use this whenever the user wants to fill in timesheets, log hours, track or reconstruct what they worked on for a day/week/month, fill timesheet gaps, or add work blocks to their calendar or Productive, even if they only say "do it for today" or "what did I work on last week" in a timesheet context. Also use it to manage the skill's settings (projects and colours, task naming, the projects folder and which folders to check, the default terminal, and the daily timesheet reminder on/off/time) and to show its shortcut commands (`help`) or redo setup (`setup`).
 ---
 
@@ -9,7 +9,7 @@ Rebuild the user's working days from evidence, agree on the blocks with them, th
 
 The user's calendar is shared with colleagues and holds real meetings, so the two things that matter most are: **never touch an event you didn't create in this flow**, and **never write to the calendar before the user approves a dry run**. Everything else is judgement.
 
-Personal settings (calendars, git author, working day, lunch) and data live in `~/.claude/timesheet-calendar/`, outside the skill; `references/config.md` describes them. Scripts are in `${CLAUDE_SKILL_DIR}/scripts`. The skill is invoked as `/dcepa95:timesheet-calendar` when installed as a plugin, or `/timesheet-calendar` as a personal skill; use whichever form started this run when you print commands.
+Personal settings (calendars, git author, working day, lunch) and data live in `~/.claude/timesheet-calendar/`, outside the skill; `references/config.md` describes them. Scripts are in `${CLAUDE_SKILL_DIR}/scripts`. The skill is invoked as `/timesheet:log` when installed as a plugin, or `/log` as a personal skill; use whichever form started this run when you print commands.
 
 ## Setup (first run)
 
@@ -89,7 +89,9 @@ The user should be able to get through a whole run by picking options, typing on
 
 Run `python3 ${CLAUDE_SKILL_DIR}/scripts/ledger.py gaps` first. It prints the last day with logged blocks and the weekdays of the last two weeks with nothing logged, which makes the range options concrete.
 
-Run `python3 ${CLAUDE_SKILL_DIR}/scripts/version.py check` alongside it, on every run including shortcuts. It prints nothing when the plugin is up to date (or offline). When it prints `UPDATE …`, ask before anything else **"A newer version of the plugin is available. Update first?"**, with the listed changes in the question text:
+Run `python3 ${CLAUDE_SKILL_DIR}/scripts/reminder.py status` alongside it. If the reminder is on and its `command:` line isn't the command this run started with (older versions used `/dcepa95:timesheet-calendar`), run `reminder.py on --time <its time> --days <its days>` to refresh it, so **Do it now** starts the right command.
+
+Run `python3 ${CLAUDE_SKILL_DIR}/scripts/version.py check` alongside them, on every run including shortcuts. It prints nothing when the plugin is up to date (or offline). When it prints `UPDATE …`, ask before anything else **"A newer version of the plugin is available. Update first?"**, with the listed changes in the question text:
 - `Update now (Recommended)`: run `version.py update`. It updates the plugin and refreshes the daily reminder if it's on. Then stop and tell the user to restart Claude Code and run the same command again, because this session still has the old version loaded.
 - `Not now`: carry on with this version.
 
@@ -245,6 +247,15 @@ Report: events created per day and the verification result. Then tell the user t
 
 Then ask **"Did the import into Productive work?"**: `Yes, imported` · `Not yet`. On yes, run `ledger.py imported <dates>`. That's what later warns before a day already in Productive is changed. `ledger.py gaps` lists days with blocks that aren't marked as imported yet.
 
+Then, unless `projects.py pref standup_offer` is `off`, offer to turn the logged time into an update, since the day's evidence and the agreed blocks are already here. Ask **"Want an update written from this?"**, with the likely one first:
+- `End-of-day note` (Recommended when the range ends today)
+- `Standup message`: the last logged day plus today's plan (Recommended when the range ends before today)
+- `Week recap` (only when the range covers several days)
+- `No thanks`
+- `No, and stop asking`: runs `projects.py pref standup_offer off`.
+
+For an update, invoke the `standup:write` skill with the Skill tool, passing `today`, `yesterday` or `week` and the range, and say that the evidence and the approved blocks are already in this conversation. If that skill isn't available, the `standup` plugin isn't installed: say it can be added with `claude plugin install standup@claude-skills` (then restart Claude Code), and skip this.
+
 Finally, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. Answering `Off` runs `reminder.py off`, which records the choice so it isn't asked again.
 
 ## Shortcuts and help
@@ -261,6 +272,7 @@ The skill takes shortcut arguments, so settings can be changed without going thr
 | `terminal` · `terminal <app>` · `terminal ask` · `terminal always` | the default terminal for **Do it now**. `ask` shows the picker each time with the default preselected; `always` opens the default without asking. |
 | `reminder` · `reminder on` · `reminder off` · `reminder 17:00` · `reminder daily` · `reminder weekdays` | the daily reminder |
 | `projects` | add, rename or recolour projects |
+| `standup on` · `standup off` | offer to write a standup or end-of-day note after each import (`projects.py pref standup_offer`) |
 | `naming` · `naming pr` · `naming branch` | name tasks after PR titles or branch names |
 | `productive` | shows the Productive AI skill prompt again |
 | `fix` · `fix <day>` | change blocks already in the calendar: rename, set a ticket, retime or delete (see "Fixing a day") |
@@ -299,7 +311,7 @@ Task naming is changed via Other or the `naming` shortcut.
 A different time goes via Other. **Do it now** starts Claude in `projects_dir`. Pass `--cwd <projects_dir>` when switching the reminder on. Run `reminder.py on --time HH:MM --days weekdays|daily [--cwd <dir>]` or `reminder.py off`.
 
 The dialog has three buttons:
-- **Do it now**: shows the terminal picker with the default preselected, unless it's set to `always`. It opens a window in the projects folder and starts `claude "<command> fill my time for today"`, where the command is `/dcepa95:timesheet-calendar` for the plugin (`reminder.py on` detects it; `--command` overrides).
+- **Do it now**: shows the terminal picker with the default preselected, unless it's set to `always`. It opens a window in the projects folder and starts `claude "<command> fill my time for today"`, where the command is `/timesheet:log` for the plugin (`reminder.py on` detects it; `--command` overrides).
   - Only Terminal and iTerm are offered: they take the command over AppleScript. Other terminals (Hyper, Ghostty, Warp…) would need typed keystrokes, which macOS blocks for the reminder's background job.
   - With no folder set, the first click asks for one.
 - **Remind me later…**: 15 minutes to 2 hours.

@@ -1,6 +1,12 @@
 # ticket
 
-Run `/dcepa95:ticket` with a ticket: paste the story, or give a Jira link, a GitHub issue link or `#123`. Add the Figma links if there are any. It plans the work with you before any code is written:
+Install it:
+
+```
+/plugin install ticket --marketplace dcepa95/claude-skills
+```
+
+Run `/ticket:plan` with a ticket: paste the story, or give a Jira link, a GitHub issue link or `#123`. Add the Figma links if there are any. It plans the work with you before any code is written:
 
 1. Sums up the goal, the acceptance criteria and what's out of scope.
 2. Lists the questions the ticket leaves open, like markets, translations, CMS content, loading and error states, rollout, tracking and edge cases.
@@ -12,6 +18,6 @@ Run `/dcepa95:ticket` with a ticket: paste the story, or give a Jira link, a Git
 
 Nothing in your code changes until you approve the plan. Jira links only open when a Jira or Atlassian connector is set up in Claude; otherwise it asks you to paste the text. GitHub issues need the GitHub CLI (`gh`), and designs need the Figma plugin.
 
-Your last choices are remembered in `~/.claude/ticket/prefs.json`. `/dcepa95:ticket help` lists the shortcuts.
+Your last choices are remembered in `~/.claude/ticket/prefs.json`. `/ticket:plan help` lists the shortcuts.
 
 See the [plugin README](../../README.md) to install or update.

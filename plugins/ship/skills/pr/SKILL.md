@@ -1,5 +1,5 @@
 ---
-name: ship
+name: pr
 description: Get a finished branch ready for review. Checks for leftover TEMP and TODO comments, reviews the diff, lists what must exist before release (translation keys, CMS content, env vars), and writes the PR description in the user's own voice, learned from real PRs they pasted. Then asks whether to open (or update) the PR or save the description to a .md file. Never pushes or opens a PR without asking. Use this whenever the user wants to ship, wrap up or finish a branch, asks for a PR message, PR description or commit summary, asks "is this ready for review", "what's needed before release", or wants the translations or Contentful changes for a branch, even if they only say "PR message" or "wrap this up". Also `voice` to add or replace their PR samples, `pr` for the description only, and `help`.
 ---
 
@@ -11,7 +11,7 @@ Two rules matter most:
 - **Nothing leaves the machine without the user picking it.** No push, PR, PR edit or commit unless they chose that option in this run.
 - **The description sounds like the user's own PRs.** Their pasted samples are the reference, not general rules about tone.
 
-Data lives in `~/.claude/ship/`, outside the skill, so updates never touch it: `voice.md` holds the pasted PRs, `drafts/` the saved descriptions. The leftover scanner is `${CLAUDE_SKILL_DIR}/../../hooks/markers.py`. The skill runs as `/dcepa95:ship` when installed as a plugin, or `/ship` as a personal skill; use whichever started this run when you print commands.
+Data lives in `~/.claude/ship/`, outside the skill, so updates never touch it: `voice.md` holds the pasted PRs, `drafts/` the saved descriptions. The leftover scanner comes with the `temp-guard` plugin, which this plugin depends on: `MARKERS` below is the output of `python3 ${CLAUDE_SKILL_DIR}/scripts/plugin_path.py temp-guard` followed by `/hooks/markers.py`. If `plugin_path.py` fails, show the install command it prints, and stop. The skill runs as `/ship:pr` when installed as a plugin, or `/pr` as a personal skill; use whichever started this run when you print commands.
 
 ## How to ask
 
@@ -26,18 +26,16 @@ Every decision is an `AskUserQuestion` call with 2–4 concrete options: real br
 - `help`: print the list below, then stop
 
 ```
-/dcepa95:ship            check, review, release list, PR description
-/dcepa95:ship <base>     same, against <base>
-/dcepa95:ship pr         PR description only
-/dcepa95:ship voice      add, replace or show your PR samples
-/dcepa95:ship help       this list
+/ship:pr            check, review, release list, PR description
+/ship:pr <base>     same, against <base>
+/ship:pr pr         PR description only
+/ship:pr voice      add, replace or show your PR samples
+/ship:pr help       this list
 ```
 
 ## 0. Start
 
-If `${CLAUDE_SKILL_DIR}/../timesheet-calendar/scripts/version.py` exists, run it with `check`. When it prints `UPDATE …`, ask **"A newer version of the plugin is available. Update first?"** with the changes in the question: `Update now (Recommended)` runs `version.py update`, then stop and ask the user to restart Claude Code. `Not now` carries on.
-
-Then read `~/.claude/ship/voice.md`. If it's missing or has no samples, or the argument is `voice`, go to "Voice samples" first.
+Read `~/.claude/ship/voice.md`. If it's missing or has no samples, or the argument is `voice`, go to "Voice samples" first.
 
 ## Voice samples
 
@@ -75,7 +73,7 @@ Unless the argument is `pr`, ask in the same call **"Which steps should I run?"*
 ## 2. Leftovers
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../../hooks/markers.py scan --base <base>
+python3 $MARKERS scan --base <base>
 ```
 
 It prints the lines this branch adds that carry `TEMP` or `TODO`/`FIXME` comments, as `TEMP <file>:<line>: <text>`.

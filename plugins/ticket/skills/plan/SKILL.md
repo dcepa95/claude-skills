@@ -1,5 +1,5 @@
 ---
-name: ticket
+name: plan
 description: Turn a ticket (a pasted Jira or user story, a Jira link, a GitHub issue) plus its Figma links into an agreed implementation plan before any code is written. Pulls out the requirements and acceptance criteria, flags the questions the ticket leaves open (markets, translations, CMS, tracking, flags, states), looks at the designs, maps where it fits in the codebase, asks the open questions, saves the plan, and offers a branch or worktree named after the ticket. Use this whenever the user pastes a ticket or story ("As a customer I want…"), shares a Jira or issue link to work on, says "new ticket", "let's start this feature", "plan this", or asks what's missing from a ticket, even without naming the skill. Also `help`.
 ---
 
@@ -9,7 +9,7 @@ Get from "here's the ticket" to a plan the user agrees with, so implementation s
 
 The rule that matters most: **no code changes until the user approves the plan.** Reading, searching and looking at designs are fine. Creating a branch or worktree happens only when they pick it.
 
-Data lives in `~/.claude/ticket/`, outside the skill: `prefs.json` remembers the last choices (where plans go, branch or worktree), `plans/` holds plans saved outside a repo. The skill runs as `/dcepa95:ticket` when installed as a plugin, or `/ticket` as a personal skill; use whichever started this run when you print commands.
+Data lives in `~/.claude/ticket/`, outside the skill: `prefs.json` remembers the last choices (where plans go, branch or worktree), `plans/` holds plans saved outside a repo. The skill runs as `/ticket:plan` when installed as a plugin, or `/plan` as a personal skill; use whichever started this run when you print commands.
 
 ## How to ask
 
@@ -22,9 +22,9 @@ Every decision is an `AskUserQuestion` call with 2–4 concrete options, the lik
 - `help`: print the list below, then stop
 
 ```
-/dcepa95:ticket <paste or link>   plan a ticket
-/dcepa95:ticket #123              plan a GitHub issue of this repo
-/dcepa95:ticket help              this list
+/ticket:plan <paste or link>   plan a ticket
+/ticket:plan #123              plan a GitHub issue of this repo
+/ticket:plan help              this list
 ```
 
 ## 1. Get the ticket

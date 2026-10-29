@@ -1,0 +1,12 @@
+{
+  "name": "temp-guard",
+  "description": "Blocks Claude's commits, pushes and PRs while temporary changes marked TEMP are in, and warns about new TODO/FIXME comments.",
+  "author": {
+    "name": "dcepa95"
+  },
+  "repository": "https://github.com/dcepa95/claude-skills",
+  "keywords": [
+    "git-hooks",
+    "safety"
+  ]
+}
