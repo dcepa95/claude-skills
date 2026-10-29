@@ -1,0 +1,16 @@
+{
+  "name": "ship",
+  "description": "Gets a branch ready for review: reverts leftover TEMP changes, flags new TODOs, reviews the diff, lists what's needed before release, and writes the PR description in your voice.",
+  "author": {
+    "name": "dcepa95"
+  },
+  "repository": "https://github.com/dcepa95/claude-skills",
+  "keywords": [
+    "pull-request",
+    "code-review",
+    "release"
+  ],
+  "dependencies": [
+    "temp-guard"
+  ]
+}
