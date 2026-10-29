@@ -13,6 +13,8 @@ It groups the work by ticket instead of listing every commit, only claims what t
 
 The update is shown in the chat first. Then you choose: copy it to the clipboard, save it as a `.md` file, or post it to Slack. It only posts after you confirm the channel and the exact text.
 
+The timesheet skill also offers it at the end of each import, reusing the time it just logged.
+
 It reuses the [timesheet-calendar](../timesheet-calendar/README.md) settings: projects folder, folders to check, git author, timezone and meetings calendar. If you haven't set that skill up, the first run asks for the folders. Needs Python 3 and git. Optional: the GitHub CLI (`gh`) for PRs and checks, the Google Calendar connector for meetings, and the Slack connector for posting.
 
 `/dcepa95:standup settings` changes the format and where updates go. `/dcepa95:standup help` lists the shortcuts. Preferences are kept in `~/.claude/standup/prefs.json`.

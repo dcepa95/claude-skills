@@ -245,6 +245,15 @@ Report: events created per day and the verification result. Then tell the user t
 
 Then ask **"Did the import into Productive work?"**: `Yes, imported` · `Not yet`. On yes, run `ledger.py imported <dates>`. That's what later warns before a day already in Productive is changed. `ledger.py gaps` lists days with blocks that aren't marked as imported yet.
 
+Then, unless `projects.py pref standup_offer` is `off`, offer to turn the logged time into an update, since the day's evidence and the agreed blocks are already here. Ask **"Want an update written from this?"**, with the likely one first:
+- `End-of-day note` (Recommended when the range ends today)
+- `Standup message`: the last logged day plus today's plan (Recommended when the range ends before today)
+- `Week recap` (only when the range covers several days)
+- `No thanks`
+- `No, and stop asking`: runs `projects.py pref standup_offer off`.
+
+For an update, invoke the standup skill with the Skill tool (`dcepa95:standup` when installed as a plugin, `standup` otherwise), passing `today`, `yesterday` or `week` and the range, and say that the evidence and the approved blocks are already in this conversation. If the standup skill isn't available, say it comes with the same plugin and skip this.
+
 Finally, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. Answering `Off` runs `reminder.py off`, which records the choice so it isn't asked again.
 
 ## Shortcuts and help
@@ -261,6 +270,7 @@ The skill takes shortcut arguments, so settings can be changed without going thr
 | `terminal` · `terminal <app>` · `terminal ask` · `terminal always` | the default terminal for **Do it now**. `ask` shows the picker each time with the default preselected; `always` opens the default without asking. |
 | `reminder` · `reminder on` · `reminder off` · `reminder 17:00` · `reminder daily` · `reminder weekdays` | the daily reminder |
 | `projects` | add, rename or recolour projects |
+| `standup on` · `standup off` | offer to write a standup or end-of-day note after each import (`projects.py pref standup_offer`) |
 | `naming` · `naming pr` · `naming branch` | name tasks after PR titles or branch names |
 | `productive` | shows the Productive AI skill prompt again |
 | `fix` · `fix <day>` | change blocks already in the calendar: rename, set a ticket, retime or delete (see "Fixing a day") |
