@@ -8,6 +8,7 @@ dcepa95's [Claude Code](https://claude.com/claude-code) skills, packaged as one 
 | [ship](skills/ship/README.md) | Gets a branch ready for review: reverts leftover TEMP changes, flags new TODOs, reviews the diff, lists translations, CMS changes and env vars needed before release, and writes the PR description in your voice. Asks before opening a PR, or saves the description to a .md file. |
 | [ticket](skills/ticket/README.md) | Turns a ticket and its Figma links into an agreed plan before any code: requirements, open questions, codebase map, a message for the PO, and a branch or worktree named after the ticket. |
 | [standup](skills/standup/README.md) | Writes your standup, end-of-day note, weekly recap or client summary from your commits, PRs and Claude conversations. Asks before posting to Slack. |
+| [design-qa](skills/design-qa/README.md) | Checks a page or component against its Figma design: measured properties and a pixel diff, states and breakpoints, a ledger of differences with the file to fix, and optional fix rounds. |
 
 The plugin also installs the [TEMP/TODO guard](hooks/README.md), which runs in every session: it stops Claude from committing, pushing or opening a PR while temporary changes are in, and warns about new TODOs.
 
