@@ -1,0 +1,13 @@
+{
+  "description": "Tell users of the old claude-skills marketplace to move to dcepa95",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          { "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/skills/timesheet-calendar/scripts/migrate.py", "notice"] }
+        ]
+      }
+    ]
+  }
+}

@@ -43,7 +43,7 @@ def main():
         if n == name and (market is None or m == market) and items and os.path.isdir(items[0].get('installPath', '')):
             print(items[0]['installPath'])
             return
-    sys.exit(f'Plugin "{name}" is not installed. Install it with: claude plugin install {name}@{market or "claude-skills"}')
+    sys.exit(f'Plugin "{name}" is not installed. Install it with: claude plugin install {name}@{market or "dcepa95"}')
 
 
 if __name__ == '__main__':

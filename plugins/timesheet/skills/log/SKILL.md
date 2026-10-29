@@ -254,7 +254,7 @@ Then, unless `projects.py pref standup_offer` is `off`, offer to turn the logged
 - `No thanks`
 - `No, and stop asking`: runs `projects.py pref standup_offer off`.
 
-For an update, invoke the `standup:write` skill with the Skill tool, passing `today`, `yesterday` or `week` and the range, and say that the evidence and the approved blocks are already in this conversation. If that skill isn't available, the `standup` plugin isn't installed: say it can be added with `claude plugin install standup@claude-skills` (then restart Claude Code), and skip this.
+For an update, invoke the `standup:write` skill with the Skill tool, passing `today`, `yesterday` or `week` and the range, and say that the evidence and the approved blocks are already in this conversation. If that skill isn't available, the `standup` plugin isn't installed: say it can be added with `claude plugin install standup@dcepa95` (then restart Claude Code), and skip this.
 
 Finally, if `reminder.py status` says `never set up`, ask the reminder question from Settings once. Answering `Off` runs `reminder.py off`, which records the choice so it isn't asked again.
 

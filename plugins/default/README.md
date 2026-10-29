@@ -1,9 +1,9 @@
-# dcepa95
+# default
 
 Install it to pick several plugins at once:
 
 ```
-/plugin install dcepa95 --marketplace dcepa95/claude-skills
+/plugin install default --marketplace dcepa95/claude-skills
 ```
 
 The install dialog in `/plugin` asks which plugins you want, one switch each. Only Timesheet is on by default:
@@ -19,12 +19,12 @@ The install dialog in `/plugin` asks which plugins you want, one switch each. On
 
 When the next session starts, it installs the ones you switched on, and tells you to run `/reload-plugins` or restart to load them.
 
-To change your choice later, run `/plugin configure dcepa95@claude-skills` and start a new session. Switching a plugin off doesn't uninstall it; remove it with `/plugin uninstall <name>@claude-skills`.
+To change your choice later, run `/plugin configure default@dcepa95` and start a new session. Switching a plugin off doesn't uninstall it; remove it with `/plugin uninstall <name>@dcepa95`.
 
 From the shell, `claude plugin install` doesn't show the dialog. Pass your choices instead, for example:
 
 ```
-claude plugin install dcepa95@claude-skills --config standup=true --config ship=true
+claude plugin install default@dcepa95 --config standup=true --config ship=true
 ```
 
 See the [plugin README](../../README.md) for updating.

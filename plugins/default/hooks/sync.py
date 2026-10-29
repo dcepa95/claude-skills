@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SessionStart hook: install the plugins picked in the dcepa95 bundle's settings that aren't installed yet.
+"""SessionStart hook: install the plugins picked in the default plugin's settings that aren't installed yet.
 
 Only installs. Unticking a plugin never uninstalls it.
 """
@@ -15,7 +15,7 @@ def saved(market):
         settings = json.load(open(os.path.join(os.path.dirname(PLUGINS_DIR), 'settings.json')))
     except (OSError, ValueError):
         return {}
-    return (settings.get('pluginConfigs', {}).get(f'dcepa95@{market}') or {}).get('options', {})
+    return (settings.get('pluginConfigs', {}).get(f'default@{market}') or {}).get('options', {})
 
 
 def picked(market):
@@ -45,13 +45,13 @@ def main():
     plugins = installed()
     root = os.path.dirname(HERE)
     market = next((k.split('@', 1)[1] for k, v in plugins.items()
-                   if k.startswith('dcepa95@') and any(root.startswith(e.get('installPath', '\0')) for e in v)), 'claude-skills')
+                   if k.startswith('default@') and any(root.startswith(e.get('installPath', '\0')) for e in v)), 'dcepa95')
     missing = [p for p in picked(market) if f'{p}@{market}' not in plugins]
     if not missing:
         return
     claude = shutil.which('claude')
     if not claude:
-        print(json.dumps({'systemMessage': 'dcepa95: install ' + ', '.join(missing) + f' with: claude plugin install <name>@{market}'}))
+        print(json.dumps({'systemMessage': 'Install ' + ', '.join(missing) + f' with: claude plugin install <name>@{market}'}))
         return
     done, failed = [], []
     for p in missing:
@@ -59,7 +59,7 @@ def main():
         (done if r.returncode == 0 else failed).append(p)
     parts = []
     if done:
-        parts.append('dcepa95 installed ' + ', '.join(done) + '. Run /reload-plugins or restart Claude Code to use them.')
+        parts.append('Installed ' + ', '.join(done) + '. Run /reload-plugins or restart Claude Code to use them.')
     if failed:
         parts.append('Could not install ' + ', '.join(failed) + f'; try: claude plugin install <name>@{market}')
     print(json.dumps({'systemMessage': ' '.join(parts)}))
@@ -69,5 +69,5 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        print(json.dumps({'systemMessage': f'dcepa95 plugin picker failed: {e}'}))
+        print(json.dumps({'systemMessage': f'Plugin picker (default@dcepa95) failed: {e}'}))
     sys.exit(0)

@@ -1,0 +1,11 @@
+{
+  "name": "dcepa95",
+  "description": "Old name, don't install. Moves an install from the old claude-skills marketplace to default@dcepa95.",
+  "author": {
+    "name": "dcepa95"
+  },
+  "repository": "https://github.com/dcepa95/claude-skills",
+  "keywords": [
+    "migration"
+  ]
+}
