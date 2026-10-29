@@ -70,6 +70,8 @@ The last working day is the previous weekday, so Friday on a Monday. A typed dat
 
 ## 2. Gather
 
+When the timesheet skill started this run, the day's evidence and the approved calendar blocks are already in the conversation. Use them instead of running `gather.py` again: the block titles are the agreed task names, so prefer them. Still run the "next" checks below for a standup or end-of-day note.
+
 ```bash
 python3 $TS/gather.py collect --since <start> --until <end> --skip-session <current-session-id> <folders…>
 python3 $TS/projects.py match <folders…>

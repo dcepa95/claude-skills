@@ -8,6 +8,8 @@ Run `/dcepa95:timesheet-calendar`. The first run walks you through setup:
 4. Pick the folder that holds your projects, and which folders in it to check.
 5. Pick your meetings and holiday calendars, git author and working day.
 
+After each import it offers to write an end-of-day note, standup message or week recap from the logged time, using [standup](../standup/README.md). Turn that off with `/dcepa95:timesheet-calendar standup off`.
+
 Run `/dcepa95:timesheet-calendar setup` to go through it again. `/dcepa95:timesheet-calendar help` lists the shortcuts.
 
 Needs the Google Calendar connector in Claude, Python 3 and git. Optional: the GitHub CLI (`gh`) for PR titles and review time, and macOS for the daily reminder.
