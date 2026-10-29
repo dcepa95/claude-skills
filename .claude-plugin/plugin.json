@@ -1,6 +1,6 @@
 {
   "name": "dcepa95",
-  "description": "dcepa95's Claude Code skills: timesheet-calendar rebuilds worked hours from git history and Claude Code sessions and adds them as blocks to a private Google Calendar that Productive reads, with a daily macOS reminder. ship gets a branch ready for review and writes the PR description in your voice. ticket turns a ticket into an agreed implementation plan. Also a guard that blocks commits, pushes and PRs while TEMP comments are in the changes, and warns about new TODOs.",
+  "description": "dcepa95's Claude Code skills: timesheet-calendar rebuilds worked hours from git history and Claude Code sessions and adds them as blocks to a private Google Calendar that Productive reads, with a daily macOS reminder. ship gets a branch ready for review and writes the PR description in your voice. ticket turns a ticket into an agreed implementation plan. standup writes your standup or weekly summary from that same history. Also a guard that blocks commits, pushes and PRs while TEMP comments are in the changes, and warns about new TODOs.",
   "author": {
     "name": "dcepa95"
   },
