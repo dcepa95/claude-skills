@@ -1,14 +1,50 @@
 {
   "name": "dcepa95",
-  "description": "Installs the timesheet plugin. Kept so existing installs keep working; install the other plugins one by one.",
+  "description": "Pick which of dcepa95's plugins to install. Timesheet is on by default; change the choice any time with /plugin configure dcepa95@claude-skills.",
   "author": {
     "name": "dcepa95"
   },
   "repository": "https://github.com/dcepa95/claude-skills",
   "keywords": [
+    "bundle",
     "timesheet"
   ],
-  "dependencies": [
-    "timesheet"
-  ]
+  "userConfig": {
+    "timesheet": {
+      "type": "boolean",
+      "title": "Timesheet (/timesheet:log)",
+      "description": "Rebuilds your worked hours from git and Claude history into a Google Calendar that Productive reads.",
+      "default": true
+    },
+    "standup": {
+      "type": "boolean",
+      "title": "Standup (/standup:write)",
+      "description": "Writes your standup, end-of-day or weekly update from your work history. Also installs Timesheet.",
+      "default": false
+    },
+    "ship": {
+      "type": "boolean",
+      "title": "Ship (/ship:pr)",
+      "description": "Gets a branch ready for review and writes the PR description in your voice. Also installs TEMP guard.",
+      "default": false
+    },
+    "ticket": {
+      "type": "boolean",
+      "title": "Ticket (/ticket:plan)",
+      "description": "Turns a ticket and its designs into an agreed plan before any code.",
+      "default": false
+    },
+    "design_qa": {
+      "type": "boolean",
+      "title": "Design QA (/design-qa:check)",
+      "description": "Checks a page or component against its Figma design with measurements and a pixel diff.",
+      "default": false
+    },
+    "temp_guard": {
+      "type": "boolean",
+      "title": "TEMP guard",
+      "description": "Blocks Claude from committing or opening PRs while temporary changes are in, and warns about new TODOs.",
+      "default": false
+    }
+  }
 }
