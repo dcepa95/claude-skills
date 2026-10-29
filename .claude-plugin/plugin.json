@@ -1,6 +1,6 @@
 {
   "name": "dcepa95",
-  "description": "dcepa95's Claude Code skills: timesheet-calendar rebuilds worked hours from git history and Claude Code sessions and adds them as blocks to a private Google Calendar that Productive reads, with a daily macOS reminder.",
+  "description": "dcepa95's Claude Code skills: timesheet-calendar rebuilds worked hours from git history and Claude Code sessions and adds them as blocks to a private Google Calendar that Productive reads, with a daily macOS reminder. Also a guard that blocks commits, pushes and PRs while TEMP comments are in the changes, and warns about new TODOs.",
   "author": {
     "name": "dcepa95"
   },
@@ -9,6 +9,7 @@
     "timesheet",
     "productive",
     "google-calendar",
-    "time-tracking"
+    "time-tracking",
+    "git-hooks"
   ]
 }
