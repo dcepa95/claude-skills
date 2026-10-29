@@ -6,6 +6,7 @@ dcepa95's [Claude Code](https://claude.com/claude-code) skills, packaged as one 
 |---|---|
 | [timesheet-calendar](skills/timesheet-calendar/README.md) | Rebuilds worked hours from git history and Claude Code sessions, and adds them as blocks to a private Google Calendar that Productive reads as timesheet suggestions. Daily macOS reminder with a "Do it now" button. |
 | [ship](skills/ship/README.md) | Gets a branch ready for review: reverts leftover TEMP changes, flags new TODOs, reviews the diff, lists translations, CMS changes and env vars needed before release, and writes the PR description in your voice. Asks before opening a PR, or saves the description to a .md file. |
+| [ticket](skills/ticket/README.md) | Turns a ticket and its Figma links into an agreed plan before any code: requirements, open questions, codebase map, a message for the PO, and a branch or worktree named after the ticket. |
 
 The plugin also installs the [TEMP/TODO guard](hooks/README.md), which runs in every session: it stops Claude from committing, pushing or opening a PR while temporary changes are in, and warns about new TODOs.
 
