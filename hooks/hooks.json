@@ -1,0 +1,21 @@
+{
+  "description": "Block commits, pushes and PRs while TEMP comments are in the changes; warn about new TODOs",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          { "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/markers.py", "context"] }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/markers.py", "hook"], "timeout": 30 }
+        ]
+      }
+    ]
+  }
+}
