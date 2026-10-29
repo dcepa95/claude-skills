@@ -6,9 +6,39 @@
   },
   "plugins": [
     {
+      "name": "timesheet",
+      "source": "./plugins/timesheet",
+      "description": "Rebuilds worked hours from git history and Claude Code sessions, and adds them as blocks to a private Google Calendar that Productive reads as timesheet suggestions. Daily macOS reminder."
+    },
+    {
+      "name": "standup",
+      "source": "./plugins/standup",
+      "description": "Writes your standup, end-of-day note, weekly recap or client summary from your commits, PRs and Claude conversations. Asks before posting to Slack."
+    },
+    {
+      "name": "ship",
+      "source": "./plugins/ship",
+      "description": "Gets a branch ready for review: reverts leftover TEMP changes, flags new TODOs, reviews the diff, lists what's needed before release, and writes the PR description in your voice."
+    },
+    {
+      "name": "ticket",
+      "source": "./plugins/ticket",
+      "description": "Turns a ticket and its Figma links into an agreed implementation plan before any code: requirements, open questions, codebase map, a message for the PO, and a branch or worktree."
+    },
+    {
+      "name": "design-qa",
+      "source": "./plugins/design-qa",
+      "description": "Checks a page or component against its Figma design with measured properties and a pixel diff, across states and breakpoints, and says which file to fix."
+    },
+    {
+      "name": "temp-guard",
+      "source": "./plugins/temp-guard",
+      "description": "Blocks Claude's commits, pushes and PRs while temporary changes marked TEMP are in, and warns about new TODO/FIXME comments."
+    },
+    {
       "name": "dcepa95",
-      "source": "./",
-      "description": "dcepa95's skills: timesheet-calendar (timesheets from git history into a Productive-synced Google Calendar), ship (branch review, release checklist and PR description in your voice), ticket (ticket to agreed plan), standup (standups and weekly summaries from your work history), plus a TEMP/TODO guard for commits and PRs."
+      "source": "./plugins/dcepa95",
+      "description": "Installs the timesheet plugin. Kept so existing installs keep working; install the other plugins one by one."
     }
   ]
 }
