@@ -1,6 +1,6 @@
 # standup
 
-Install: This also installs [timesheet](../timesheet/README.md).
+Install it (this also installs [timesheet](../timesheet/README.md)):
 
 ```
 /plugin install standup --marketplace dcepa95/claude-skills

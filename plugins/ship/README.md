@@ -1,6 +1,6 @@
 # ship
 
-Install: This also installs [temp-guard](../temp-guard/README.md).
+Install it (this also installs [temp-guard](../temp-guard/README.md)):
 
 ```
 /plugin install ship --marketplace dcepa95/claude-skills

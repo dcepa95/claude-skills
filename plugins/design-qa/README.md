@@ -1,6 +1,6 @@
 # design-qa
 
-Install:
+Install it:
 
 ```
 /plugin install design-qa --marketplace dcepa95/claude-skills
