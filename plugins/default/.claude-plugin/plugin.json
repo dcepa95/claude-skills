@@ -1,6 +1,6 @@
 {
-  "name": "dcepa95",
-  "description": "Pick which of dcepa95's plugins to install. Timesheet is on by default; change the choice any time with /plugin configure dcepa95@claude-skills.",
+  "name": "default",
+  "description": "Pick which of dcepa95's plugins to install. Timesheet is on by default; change the choice any time with /plugin configure default@dcepa95.",
   "author": {
     "name": "dcepa95"
   },
