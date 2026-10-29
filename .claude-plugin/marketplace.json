@@ -8,7 +8,7 @@
     {
       "name": "dcepa95",
       "source": "./",
-      "description": "dcepa95's skills: timesheet-calendar (timesheets from git history into a Productive-synced Google Calendar), plus a TEMP/TODO guard for commits and PRs."
+      "description": "dcepa95's skills: timesheet-calendar (timesheets from git history into a Productive-synced Google Calendar), ship (branch review, release checklist and PR description in your voice), plus a TEMP/TODO guard for commits and PRs."
     }
   ]
 }
